@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./src:/app/src:cached
+    ports: 
+      - 8080:8080
+    networks:
+      - app-network
+    env_file: .env
+    command: 
+      - /bin/sh
+      - -c
+      - |
+        cd ./src
+        go mod download
+        go run main.go
+
+networks:
+  app-network:
+
