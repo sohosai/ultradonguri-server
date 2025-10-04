@@ -2,10 +2,15 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sohosai/ultradonguri-server/internal/presentation/handlers"
 )
 
 func main() {
-	fmt.Println("Hello World!!!")
-	http.ListenAndServe(":8080", nil)
+	r := gin.Default()
+	handlers.Handle(r)
+
+	fmt.Println("Application Starts!")
+	r.Run("0.0.0.0:8080") // listen and serve on 0.0.0.0:8080
 }
