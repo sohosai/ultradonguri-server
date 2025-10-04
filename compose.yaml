@@ -5,6 +5,7 @@ services:
       dockerfile: dev.Dockerfile
     volumes:
       - ./src:/app/src:cached
+      - app-data:/app
     ports: 
       - 8080:8080
     networks:
@@ -16,8 +17,11 @@ services:
       - |
         cd ./src
         go mod download
-        go run main.go
+        air -c .air.toml
 
 networks:
   app-network:
+
+volumes:
+  app-data:
 
