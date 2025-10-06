@@ -3,7 +3,6 @@ package audio
 import (
 	"fmt"
 
-	"example.com/donguri-back/client"
 	"example.com/donguri-back/util"
 	"github.com/andreykaipov/goobs"
 	"github.com/andreykaipov/goobs/api/requests/inputs"
@@ -11,13 +10,13 @@ import (
 )
 
 type AudioClient struct {
-	sharedClient *client.SharedClient
+	sharedClient *util.Mutex[*goobs.Client]
 	sceneUuid    string
 	inputUuid    string
 	sceneItemId  int
 }
 
-func NewAudioClient(sharedClient *client.SharedClient, sceneName string, inputName string) (*AudioClient, error) {
+func NewAudioClient(sharedClient *util.Mutex[*goobs.Client], sceneName string, inputName string) (*AudioClient, error) {
 	sceneUuid := ""
 	inputUuid := ""
 	sceneItemId := 0
