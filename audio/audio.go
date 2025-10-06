@@ -10,70 +10,56 @@ import (
 )
 
 type AudioClient struct {
-	sharedClient *util.Mutex[*goobs.Client]
-	sceneUuid    string
-	inputUuid    string
-	sceneItemId  int
+	obsClient   *goobs.Client
+	sceneUuid   string
+	inputUuid   string
+	sceneItemId int
 }
 
-func NewAudioClient(sharedClient *util.Mutex[*goobs.Client], sceneName string, inputName string) (*AudioClient, error) {
-	sceneUuid := ""
-	inputUuid := ""
-	sceneItemId := 0
+func NewAudioClient(obsClient *goobs.Client, sceneName string, inputName string) (*AudioClient, error) {
+	// sceneUuid := ""
+	// inputUuid := ""
+	// sceneItemId := 0
 
-	if err := sharedClient.With(func(client *goobs.Client) error {
-		// sceneNameからsceneUuidを取得する。取得できなければ、そのようなsceneNameのSceneが存在しないと判断してエラー
-		sceneUuid_, err := util.FindSceneByName(client, sceneName)
-		if err != nil {
-			return fmt.Errorf("Failed to find scene named %s: %s", sceneName, err)
-		}
+	// sceneNameからsceneUuidを取得する。取得できなければ、そのようなsceneNameのSceneが存在しないと判断してエラー
+	sceneUuid, err := util.FindSceneByName(obsClient, sceneName)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find scene named %s: %s", sceneName, err)
+	}
 
-		// inputNameからinputUuidを取得する。取得できなければ、そのようなinputNameのInputが存在しないと判断してエラー
-		inputUuid_, err := util.FindInputByName(client, inputName)
-		if err != nil {
-			return fmt.Errorf("Failed to find input named %s: %s", inputName, err)
-		}
+	// inputNameからinputUuidを取得する。取得できなければ、そのようなinputNameのInputが存在しないと判断してエラー
+	inputUuid, err := util.FindInputByName(obsClient, inputName)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find input named %s: %s", inputName, err)
+	}
 
-		// 最初からオーディオのInputはSceneItemになっているはずなので、それを確認し、なっていなかったらエラー
-		// 同一のSceneに同一のInputが複数のSceneItemとして登録されうるが、この場合一番始めに見つかったものが返されるのだろうか。
-		// 一旦一番始めに見つかったものを使う
-		sceneItemId_, err := client.SceneItems.GetSceneItemId(
-			sceneitems.NewGetSceneItemIdParams().
-				WithSceneUuid(sceneUuid).
-				WithSceneName(sceneName).
-				WithSourceName(inputName))
-		if err != nil {
-			return fmt.Errorf("Failed to find scene item id: %s", err)
-		}
-
-		sceneUuid = sceneUuid_
-		inputUuid = inputUuid_
-		sceneItemId = sceneItemId_.SceneItemId
-
-		return nil
-	}); err != nil {
-		return nil, err
+	// 最初からオーディオのInputはSceneItemになっているはずなので、それを確認し、なっていなかったらエラー
+	// 同一のSceneに同一のInputが複数のSceneItemとして登録されうるが、この場合一番始めに見つかったものが返されるのだろうか。
+	// 一旦一番始めに見つかったものを使う
+	sceneItemId, err := obsClient.SceneItems.GetSceneItemId(
+		sceneitems.NewGetSceneItemIdParams().
+			WithSceneUuid(sceneUuid).
+			WithSceneName(sceneName).
+			WithSourceName(inputName))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find scene item id: %s", err)
 	}
 
 	return &AudioClient{
-		sharedClient: sharedClient,
-		sceneUuid:    sceneUuid,
-		inputUuid:    inputUuid,
-		sceneItemId:  sceneItemId,
+		obsClient:   obsClient,
+		sceneUuid:   sceneUuid,
+		inputUuid:   inputUuid,
+		sceneItemId: sceneItemId.SceneItemId,
 	}, nil
 }
 
 func (self *AudioClient) SetMute(state bool) error {
-	return self.sharedClient.With(func(client *goobs.Client) error {
-		if _, err := client.Inputs.SetInputMute(
-			inputs.NewSetInputMuteParams().
-				WithInputUuid(self.inputUuid).
-				WithInputMuted(state)); err != nil {
-			return err
-		}
+	_, err := self.obsClient.Inputs.SetInputMute(
+		inputs.NewSetInputMuteParams().
+			WithInputUuid(self.inputUuid).
+			WithInputMuted(state))
 
-		return nil
-	})
+	return err
 }
 
 func (self *AudioClient) Mute() error {
@@ -85,20 +71,11 @@ func (self *AudioClient) UnMute() error {
 }
 
 func (self *AudioClient) GetMute() (bool, error) {
-	isMuted := false
 
-	if err := self.sharedClient.With(func(client *goobs.Client) error {
-		res, err := client.Inputs.GetInputMute(inputs.NewGetInputMuteParams().WithInputUuid(self.inputUuid))
-		if err != nil {
-			return err
-		}
-
-		isMuted = res.InputMuted
-
-		return nil
-	}); err != nil {
+	res, err := self.obsClient.Inputs.GetInputMute(inputs.NewGetInputMuteParams().WithInputUuid(self.inputUuid))
+	if err != nil {
 		return false, err
 	}
 
-	return isMuted, nil
+	return res.InputMuted, nil
 }

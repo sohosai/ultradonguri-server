@@ -10,7 +10,6 @@ import (
 	"example.com/donguri-back/audio"
 	"example.com/donguri-back/spec"
 	"example.com/donguri-back/telop"
-	"example.com/donguri-back/util"
 	"github.com/andreykaipov/goobs"
 	"github.com/gin-gonic/gin"
 )
@@ -36,12 +35,10 @@ func main() {
 	}
 	defer obsClient.Disconnect()
 
-	sharedClient := util.NewMutex(obsClient)
-
 	telopClient := telop.NewTelopClient()
 
 	// AudioClientの作成
-	audioClient, err := audio.NewAudioClient(sharedClient, SCENE, AUDIO_INPUT)
+	audioClient, err := audio.NewAudioClient(obsClient, SCENE, AUDIO_INPUT)
 	if err != nil {
 		fmt.Printf("Failed to create audio client: %s\n", err)
 	}
