@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 
 	"example.com/donguri-back/audio"
@@ -12,6 +14,7 @@ import (
 	"example.com/donguri-back/telop"
 	"github.com/andreykaipov/goobs"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
 type IdReq struct {
@@ -35,12 +38,35 @@ func main() {
 	}
 	defer obsClient.Disconnect()
 
-	telopClient := telop.NewTelopClient()
+	telopStore := telop.NewTelopStore()
 
 	// AudioClientの作成
 	audioClient, err := audio.NewAudioClient(obsClient, SCENE, AUDIO_INPUT)
 	if err != nil {
 		fmt.Printf("Failed to create audio client: %s\n", err)
+	}
+
+	// Telopをwebsocketにブロードキャストするためのworkerを起動
+	go StartTelopWebsocketBroadcastWorker()
+
+	// websocket upgrader
+	var upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			origin := r.Header.Get("Origin")
+			if origin == "" {
+				return false
+			}
+			u, err := url.Parse(origin)
+			if err != nil {
+				return false
+			}
+			switch u.Hostname() {
+			case "localhost", "127.0.0.1", "::1":
+				return true
+			default:
+				return false
+			}
+		},
 	}
 
 	// webサーバー
@@ -68,7 +94,11 @@ func main() {
 			return
 		}
 
-		telopClient.SetPerformanceTelop(performancePost)
+		telopStore.SetPerformanceTelop(performancePost)
+		telopMessage := telopStore.GetCurrentTelopMessage()
+		if telopMessage.IsSome() {
+			PushTelop(telopMessage.Unwrap())
+		}
 
 		if performancePost.Music.ShouldBeMuted {
 			audioClient.Mute()
@@ -86,7 +116,12 @@ func main() {
 			return
 		}
 
-		telopClient.SetConversionTelop(conversionPost)
+		telopStore.SetConversionTelop(conversionPost)
+		telopMessage := telopStore.GetCurrentTelopMessage()
+		slog.Info("message: ", "message", telopMessage)
+		if telopMessage.IsSome() {
+			PushTelop(telopMessage.Unwrap())
+		}
 
 		audioClient.UnMute()
 
@@ -118,7 +153,39 @@ func main() {
 		c.JSON(http.StatusOK, spec.MuteState{IsMuted: isMuted})
 	})
 
-	// デフォルト :8080 で起動
+	r.GET("/ws", func(c *gin.Context) {
+		wsConnection, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+
+		slog.Info("New websocket connection is established")
+
+		if err != nil {
+			log.Println("upgrade:", err)
+			return
+		}
+
+		WsConnections.Lock()
+		WsConnections.conns[wsConnection] = true
+		for conn := range WsConnections.conns {
+			slog.Info("", "Addr: ", conn.LocalAddr().String())
+		}
+		WsConnections.Unlock()
+
+		defer func() {
+			WsConnections.Lock()
+			delete(WsConnections.conns, wsConnection)
+			WsConnections.Unlock()
+			wsConnection.Close()
+		}()
+
+		for {
+			if _, _, err := wsConnection.ReadMessage(); err != nil {
+				slog.Error("read: ", err)
+				break
+			}
+		}
+
+	})
+
 	_ = r.Run(":8080")
 }
 
@@ -136,7 +203,6 @@ func GetPerformances() ([]spec.PerformanceForPerformances, error) {
 		return nil, err
 	}
 
-	// 余剰トークン検出
 	if dec.More() {
 		return nil, fmt.Errorf("trailing data after JSON array")
 	}
