@@ -54,13 +54,14 @@ func NewAudioClient(obsClient *goobs.Client, sceneName string, inputName string)
 }
 
 func (self *AudioClient) SetMute(state bool) error {
-	fmt.Println("Input UUID:", self.inputUuid)
-	resp, err := self.obsClient.Inputs.SetInputMute(
+	// fmt.Println("Input UUID:", self.inputUuid)
+	// resp, err := self.obsClient.Inputs.SetInputMute(
+	_, err := self.obsClient.Inputs.SetInputMute(
 		inputs.NewSetInputMuteParams().
 			WithInputUuid(self.inputUuid).
 			WithInputMuted(state))
 
-	fmt.Println("Response from SetMute:", resp)
+	// fmt.Println("Response from SetMute:", resp)
 	return err
 }
 
