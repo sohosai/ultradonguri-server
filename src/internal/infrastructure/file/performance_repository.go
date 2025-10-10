@@ -8,12 +8,8 @@ import (
 	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
 )
 
-type PerformanceRepository struct {
-	Path string
-}
-
-func (r *PerformanceRepository) GetPerformances() ([]entities.Performance, error) {
-	file, err := os.Open(r.Path)
+func GetPerformances() ([]entities.Performance, error) {
+	file, err := os.Open("events.json")
 	if err != nil {
 		return nil, err
 	}

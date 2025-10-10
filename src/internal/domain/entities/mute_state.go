@@ -1,5 +1,5 @@
 package entities
 
 type MuteState struct {
-	IsMuted bool
+	Is_Muted bool `json:"is_muted"`
 }

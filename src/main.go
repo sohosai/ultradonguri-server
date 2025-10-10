@@ -7,7 +7,6 @@ import (
 	"github.com/andreykaipov/goobs"
 	"github.com/gin-gonic/gin"
 	"github.com/sohosai/ultradonguri-server/internal/infrastructure/audio"
-	"github.com/sohosai/ultradonguri-server/internal/infrastructure/file"
 	"github.com/sohosai/ultradonguri-server/internal/infrastructure/telop"
 	"github.com/sohosai/ultradonguri-server/internal/presentation/handlers"
 )
@@ -16,7 +15,7 @@ func main() {
 	ADDR := "192.168.0.38:4455"
 	PASS := "FiXyBLyCug7xt2Zw"
 	SCENE := "Dev"
-	AUDIO_INPUT := "Audio Input"
+	AUDIO_INPUT := "Audio Input2"
 
 	// OBS との接続を確立
 	obsClient, err := goobs.New(ADDR, goobs.WithPassword(PASS))
@@ -35,9 +34,7 @@ func main() {
 
 	telopClient := telop.NewTelopClient()
 
-	perfRepo := &file.PerformanceRepository{Path: "events.json"}
-
-	h := handlers.NewHandler(audioClient, telopClient, perfRepo)
+	h := handlers.NewHandler(audioClient, telopClient)
 
 	r := gin.Default()
 	h.Handle(r)

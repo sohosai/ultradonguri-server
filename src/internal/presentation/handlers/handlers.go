@@ -7,21 +7,20 @@ import (
 	"github.com/sohosai/ultradonguri-server/internal/domain/service"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sohosai/ultradonguri-server/internal/infrastructure/file"
+	. "github.com/sohosai/ultradonguri-server/internal/infrastructure/file"
 )
 
 // Handler は AudioService と TelopService を保持
 type Handler struct {
-	AudioService    service.AudioService
-	TelopService    service.TelopService
-	PerformanceRepo *file.PerformanceRepository
+	AudioService service.AudioService
+	TelopService service.TelopService
+	// PerformanceRepo *file.PerformanceRepository
 }
 
-func NewHandler(audio service.AudioService, telop service.TelopService, repo *file.PerformanceRepository) *Handler {
+func NewHandler(audio service.AudioService, telop service.TelopService) *Handler {
 	return &Handler{
-		AudioService:    audio,
-		TelopService:    telop,
-		PerformanceRepo: repo,
+		AudioService: audio,
+		TelopService: telop,
 	}
 }
 
@@ -39,7 +38,7 @@ func (h *Handler) Handle(r *gin.Engine) {
 			return
 		}
 
-		if err := h.AudioService.SetMute(muteReq.IsMuted); err != nil {
+		if err := h.AudioService.SetMute(muteReq.Is_Muted); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -58,7 +57,7 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 	// /performances
 	r.GET("/performances", func(c *gin.Context) {
-		perfs, err := h.PerformanceRepo.GetPerformances()
+		perfs, err := GetPerformances()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
