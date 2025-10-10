@@ -3,7 +3,6 @@ package telop
 import (
 	"encoding/json"
 	"log"
-	"log/slog"
 
 	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
 	"github.com/sohosai/ultradonguri-server/internal/domain/entities/telopentity"
@@ -42,5 +41,7 @@ func (self *TelopClient) SetConversionTelop(telop entities.ConversionPost) {
 	self.Conversion = utils.Some(telop)
 	self.TelopType = telopentity.Conversion
 
-	slog.Info("Telop changed: ", "conversion", self.Conversion)
+	telopJson, _ := json.Marshal(telop)
+	// slog.Info("Telop changed: ", "conversion", self.Conversion)
+	log.Printf("Telop changed: %s", string(telopJson))
 }
