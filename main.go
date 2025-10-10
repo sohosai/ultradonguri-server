@@ -118,7 +118,6 @@ func main() {
 
 		telopStore.SetConversionTelop(conversionPost)
 		telopMessage := telopStore.GetCurrentTelopMessage()
-		slog.Info("message: ", "message", telopMessage)
 		if telopMessage.IsSome() {
 			PushTelop(telopMessage.Unwrap())
 		}
