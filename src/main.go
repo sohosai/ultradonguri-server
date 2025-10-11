@@ -30,11 +30,13 @@ func main() {
 		panic(err)
 	}
 
-	// audioClient := obsClient
+	// websocket Hub 初期化
+	wsHub := telop.NewWebSocketHub(5)
+	go wsHub.StartTelopWebsocketBroadcastWorker()
 
 	telopClient := telop.NewTelopClient()
 
-	h := handlers.NewHandler(audioClient, telopClient)
+	h := handlers.NewHandler(audioClient, telopClient, wsHub)
 
 	r := gin.Default()
 	h.Handle(r)
