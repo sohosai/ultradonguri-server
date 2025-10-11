@@ -9,7 +9,7 @@ import (
 	"github.com/sohosai/ultradonguri-server/internal/domain/repositories"
 
 	"github.com/gin-gonic/gin"
-	. "github.com/sohosai/ultradonguri-server/internal/infrastructure/file"
+	"github.com/sohosai/ultradonguri-server/internal/infrastructure/file"
 	"github.com/sohosai/ultradonguri-server/internal/infrastructure/telop/websocket"
 )
 
@@ -33,6 +33,7 @@ func (h *Handler) Handle(r *gin.Engine) {
 		c.IndentedJSON(http.StatusOK, message)
 	})
 
+	// /force_mute
 	r.POST("/force_mute", func(c *gin.Context) {
 		var muteReq entities.MuteState
 		if err := c.ShouldBindJSON(&muteReq); err != nil {
@@ -40,7 +41,7 @@ func (h *Handler) Handle(r *gin.Engine) {
 			return
 		}
 
-		if err := h.AudioService.SetMute(muteReq.Is_Muted); err != nil {
+		if err := h.AudioService.SetMute(muteReq.IsMuted); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -59,7 +60,7 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 	// /performances
 	r.GET("/performances", func(c *gin.Context) {
-		perfs, err := GetPerformances()
+		perfs, err := file.GetPerformances()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -108,6 +109,7 @@ func (h *Handler) Handle(r *gin.Engine) {
 		c.JSON(http.StatusOK, gin.H{"ok": true})
 	})
 
+	// /ws
 	r.GET("/ws", func(c *gin.Context) {
 		wsConnection, err := websocket.Upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
