@@ -1,30 +1,28 @@
 package handlers
 
 import (
-	"fmt"
+	"log"
+	"log/slog"
 	"net/http"
 
-	"github.com/gorilla/websocket"
 	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
-	"github.com/sohosai/ultradonguri-server/internal/domain/service"
+	"github.com/sohosai/ultradonguri-server/internal/domain/repositories"
 
 	"github.com/gin-gonic/gin"
 	. "github.com/sohosai/ultradonguri-server/internal/infrastructure/file"
-	"github.com/sohosai/ultradonguri-server/internal/infrastructure/telop"
+	"github.com/sohosai/ultradonguri-server/internal/infrastructure/telop/websocket"
 )
 
-// Handler は AudioService と TelopService を保持
 type Handler struct {
-	AudioService service.AudioService
-	TelopService service.TelopService
-	wsService    *telop.WebSocketHub
-	// PerformanceRepo *file.PerformanceRepository
+	AudioService repositories.AudioService
+	TelopStore   repositories.TelopStore
+	wsService    *websocket.WebSocketHub
 }
 
-func NewHandler(audio service.AudioService, telop service.TelopService, wsHub *telop.WebSocketHub) *Handler {
+func NewHandler(audio repositories.AudioService, telop repositories.TelopStore, wsHub *websocket.WebSocketHub) *Handler {
 	return &Handler{
 		AudioService: audio,
-		TelopService: telop,
+		TelopStore:   telop,
 		wsService:    wsHub,
 	}
 }
@@ -35,7 +33,6 @@ func (h *Handler) Handle(r *gin.Engine) {
 		c.IndentedJSON(http.StatusOK, message)
 	})
 
-	// /force_mute
 	r.POST("/force_mute", func(c *gin.Context) {
 		var muteReq entities.MuteState
 		if err := c.ShouldBindJSON(&muteReq); err != nil {
@@ -78,12 +75,11 @@ func (h *Handler) Handle(r *gin.Engine) {
 			return
 		}
 
-		h.TelopService.SetPerformanceTelop(perf)
-
-		h.wsService.PushTelop(entities.TelopMessage{
-			Type:            entities.TelopTypePerformance,
-			PerformanceData: &perf,
-		})
+		h.TelopStore.SetPerformanceTelop(perf)
+		telopMessage := h.TelopStore.GetCurrentTelopMessage()
+		if telopMessage.IsSome() {
+			h.wsService.PushTelop(telopMessage.Unwrap())
+		}
 
 		if perf.Music.ShouldBeMuted {
 			h.AudioService.Mute()
@@ -102,39 +98,41 @@ func (h *Handler) Handle(r *gin.Engine) {
 			return
 		}
 
-		h.TelopService.SetConversionTelop(conv)
+		h.TelopStore.SetConversionTelop(conv)
+		telopMessage := h.TelopStore.GetCurrentTelopMessage()
+		if telopMessage.IsSome() {
+			h.wsService.PushTelop(telopMessage.Unwrap())
+		}
 
 		h.AudioService.UnMute()
 		c.JSON(http.StatusOK, gin.H{"ok": true})
 	})
 
-	//テスト用WebSocketエンドポイント
-	var upgrader = websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
-			// CORS対策：どこからでも受け取る
-			return true
-		},
-	}
 	r.GET("/ws", func(c *gin.Context) {
-		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+		wsConnection, err := websocket.Upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
-			fmt.Println("WebSocket upgrade error:", err)
+			log.Println("upgrade:", err)
 			return
 		}
-		// defer conn.Close()
-		h.wsService.AddConnection(conn)
+
+		slog.Info("New websocket connection is established")
+		h.wsService.AddConnection(wsConnection)
+
+		defer func() {
+			h.wsService.RemoveConnection(wsConnection)
+		}()
 
 		for {
-			mt, msg, err := conn.ReadMessage()
+			mt, msg, err := wsConnection.ReadMessage()
 			if err != nil {
-				fmt.Println("read error:", err)
+				log.Println("read error:", err)
 				break
 			}
-			fmt.Println("Received:", string(msg))
+			log.Println("Received:", string(msg))
 
-			err = conn.WriteMessage(mt, []byte("Hello from server!"))
+			err = wsConnection.WriteMessage(mt, []byte("Hello from server!"))
 			if err != nil {
-				fmt.Println("write error:", err)
+				log.Println("write error:", err)
 				break
 			}
 		}

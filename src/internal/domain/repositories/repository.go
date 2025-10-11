@@ -1,6 +1,9 @@
 package repositories
 
-import "github.com/sohosai/ultradonguri-server/internal/domain/entities"
+import (
+	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
+	"github.com/sohosai/ultradonguri-server/internal/utils"
+)
 
 type AudioService interface {
 	Mute() error
@@ -9,7 +12,8 @@ type AudioService interface {
 	GetMute() (bool, error)
 }
 
-type TelopService interface {
+type TelopStore interface {
 	SetPerformanceTelop(entities.PerformancePost)
 	SetConversionTelop(entities.ConversionPost)
+	GetCurrentTelopMessage() utils.Option[entities.TelopMessage]
 }

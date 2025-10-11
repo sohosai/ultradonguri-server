@@ -1,4 +1,4 @@
-package telop
+package websocket
 
 import (
 	"encoding/json"

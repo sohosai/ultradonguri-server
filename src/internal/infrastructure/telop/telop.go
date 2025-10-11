@@ -15,7 +15,7 @@ type TelopStore struct {
 	TelopMessage utils.Option[entities.TelopMessage]
 }
 
-func NewTelopClient() *TelopStore {
+func NewTelopStore() *TelopStore {
 	return &TelopStore{
 		TelopType:   entities.TelopTypeEmpty,
 		Performance: utils.None[entities.PerformancePost](),
@@ -42,4 +42,48 @@ func (self *TelopStore) SetConversionTelop(telop entities.ConversionPost) {
 	telopJson, _ := json.Marshal(telop)
 	// slog.Info("Telop changed: ", "conversion", self.Conversion)
 	log.Printf("Telop changed: %s", string(telopJson))
+}
+
+func (self *TelopStore) GetCurrentTelopMessage() utils.Option[entities.TelopMessage] {
+	switch self.TelopType {
+	case entities.TelopTypePerformance:
+		{
+			if self.Performance.IsNone() {
+				return utils.None[entities.TelopMessage]()
+			}
+
+			performance := self.Performance.Unwrap()
+
+			message := entities.TelopMessage{
+				Type:            entities.TelopTypePerformance,
+				PerformanceData: &performance,
+				ConversionData:  nil,
+			}
+
+			return utils.Some(message)
+
+		}
+	case entities.TelopTypeConversion:
+		{
+			if self.Conversion.IsNone() {
+				return utils.None[entities.TelopMessage]()
+			}
+
+			conversion := self.Conversion.Unwrap()
+
+			message := entities.TelopMessage{
+				Type:            entities.TelopTypeConversion,
+				PerformanceData: nil,
+				ConversionData:  &conversion,
+			}
+
+			return utils.Some(message)
+		}
+	case entities.TelopTypeEmpty:
+		{
+			return utils.None[entities.TelopMessage]()
+		}
+	}
+
+	return utils.None[entities.TelopMessage]()
 }

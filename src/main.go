@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sohosai/ultradonguri-server/internal/infrastructure/audio"
 	"github.com/sohosai/ultradonguri-server/internal/infrastructure/telop"
+	"github.com/sohosai/ultradonguri-server/internal/infrastructure/telop/websocket"
 	"github.com/sohosai/ultradonguri-server/internal/presentation/handlers"
 )
 
@@ -31,12 +32,12 @@ func main() {
 	}
 
 	// websocket Hub 初期化
-	wsHub := telop.NewWebSocketHub(5)
+	wsHub := websocket.NewWebSocketHub(5)
 	go wsHub.StartTelopWebsocketBroadcastWorker()
 
-	telopClient := telop.NewTelopClient()
+	telopStore := telop.NewTelopStore()
 
-	h := handlers.NewHandler(audioClient, telopClient, wsHub)
+	h := handlers.NewHandler(audioClient, telopStore, wsHub)
 
 	r := gin.Default()
 	h.Handle(r)
