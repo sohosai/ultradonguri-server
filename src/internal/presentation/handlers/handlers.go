@@ -5,8 +5,9 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
 	"github.com/sohosai/ultradonguri-server/internal/domain/repositories"
+	"github.com/sohosai/ultradonguri-server/internal/presentation/model/requests"
+	"github.com/sohosai/ultradonguri-server/internal/presentation/model/responses"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sohosai/ultradonguri-server/internal/infrastructure/file"
@@ -35,13 +36,15 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 	// /force_mute
 	r.POST("/force_mute", func(c *gin.Context) {
-		var muteReq entities.MuteState
+		var muteReq requests.MuteStateRequest //jsonを受け取るため
 		if err := c.ShouldBindJSON(&muteReq); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		if err := h.AudioService.SetMute(muteReq.IsMuted); err != nil {
+		newMuteState := muteReq.ToDomainMute() //domainの型に変換
+
+		if err := h.AudioService.SetMute(newMuteState.IsMuted); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -55,7 +58,10 @@ func (h *Handler) Handle(r *gin.Engine) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, state)
+
+		newMuteState := responses.NewMuteStateResponse(state) //返すjsonに変換するための型変換
+
+		c.JSON(http.StatusOK, newMuteState)
 	})
 
 	// /performances
@@ -65,18 +71,23 @@ func (h *Handler) Handle(r *gin.Engine) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, perfs)
+
+		newPerfState := responses.NewPerformancesResponse(perfs)
+
+		c.JSON(http.StatusOK, newPerfState)
 	})
 
 	// /performance
 	r.POST("/performance", func(c *gin.Context) {
-		var perf entities.PerformancePost
+		var perf requests.PerformancePostRequest
 		if err := c.ShouldBindJSON(&perf); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		h.TelopStore.SetPerformanceTelop(perf)
+		perfEntity := perf.ToDomainPerformancePost()
+
+		h.TelopStore.SetPerformanceTelop(perfEntity)
 		telopMessage := h.TelopStore.GetCurrentTelopMessage()
 		if telopMessage.IsSome() {
 			h.wsService.PushTelop(telopMessage.Unwrap())
@@ -93,13 +104,15 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 	// /conversion
 	r.POST("/conversion", func(c *gin.Context) {
-		var conv entities.ConversionPost
+		var conv requests.ConversionRequest
 		if err := c.ShouldBindJSON(&conv); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		h.TelopStore.SetConversionTelop(conv)
+		convEntity := conv.ToDomainConversion()
+
+		h.TelopStore.SetConversionTelop(convEntity)
 		telopMessage := h.TelopStore.GetCurrentTelopMessage()
 		if telopMessage.IsSome() {
 			h.wsService.PushTelop(telopMessage.Unwrap())

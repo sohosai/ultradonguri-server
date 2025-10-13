@@ -8,8 +8,14 @@ const (
 	TelopTypeEmpty       TelopType = "empty"
 )
 
+// type TelopMessage struct {
+// 	Type            TelopType        `json:"type"`
+// 	PerformanceData *PerformancePost `json:"performance_data,omitempty"`
+// 	ConversionData  *ConversionPost  `json:"conversion_data,omitempty"`
+// }
+
 type TelopMessage struct {
-	Type            TelopType        `json:"type"`
-	PerformanceData *PerformancePost `json:"performance_data,omitempty"`
-	ConversionData  *ConversionPost  `json:"conversion_data,omitempty"`
+	Type            TelopType
+	PerformanceData *PerformancePost
+	ConversionData  *ConversionPost
 }

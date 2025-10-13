@@ -22,16 +22,20 @@ type MusicResponse struct {
 	Intro         string `json:"intro"`
 }
 
-func NewPerformancesResponse(p entities.PerformanceForPerformances) PerformancesResponse {
-	return PerformancesResponse{
-		ID:          p.ID,
-		Title:       p.Title,
-		Performer:   p.Performer,
-		Description: p.Description,
-		StartsAt:    p.StartsAt,
-		EndsAt:      p.EndsAt,
-		Musics:      NewMusicsResponse(p.Musics),
+func NewPerformancesResponse(p []entities.PerformanceForPerformances) []PerformancesResponse {
+	res := make([]PerformancesResponse, len(p))
+	for i, perf := range p {
+		res[i] = PerformancesResponse{
+			ID:          perf.ID,
+			Title:       perf.Title,
+			Performer:   perf.Performer,
+			Description: perf.Description,
+			StartsAt:    perf.StartsAt,
+			EndsAt:      perf.EndsAt,
+			Musics:      NewMusicsResponse(perf.Musics),
+		}
 	}
+	return res
 }
 
 func NewMusicsResponse(musics []entities.MusicForPerformances) Musics {

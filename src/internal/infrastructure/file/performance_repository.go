@@ -15,7 +15,7 @@ func GetPerformances() ([]entities.PerformanceForPerformances, error) {
 	}
 	defer file.Close()
 
-	var events []entities.PerformanceForPerformances
+	var events PerformancesRecords
 	dec := json.NewDecoder(file)
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&events); err != nil {
@@ -27,5 +27,6 @@ func GetPerformances() ([]entities.PerformanceForPerformances, error) {
 		return nil, fmt.Errorf("trailing data after JSON array")
 	}
 
-	return events, nil
+	performanceEntities := events.ToDomainPerformanceForPerformances()
+	return performanceEntities, nil
 }

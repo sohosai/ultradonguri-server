@@ -12,16 +12,16 @@ type NextPerformanceRequest struct {
 	Description string `json:"description"`
 }
 
-func NewConversionRequest(entities entities.ConversionPost) ConversionRequest {
-	var nextPerformances []NextPerformanceRequest
-	for _, e := range entities.NextPerformances {
-		nextPerformances = append(nextPerformances, NextPerformanceRequest{
+func (conv ConversionRequest) ToDomainConversion() entities.ConversionPost {
+	var nextPerformances []entities.NextPerformance
+	for _, e := range conv.NextPerformances {
+		nextPerformances = append(nextPerformances, entities.NextPerformance{
 			Title:       e.Title,
 			Performer:   e.Performer,
 			Description: e.Description,
 		})
 	}
-	return ConversionRequest{
+	return entities.ConversionPost{
 		NextPerformances: nextPerformances,
 	}
 }

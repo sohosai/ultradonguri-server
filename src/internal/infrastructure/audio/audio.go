@@ -6,6 +6,7 @@ import (
 	"github.com/andreykaipov/goobs"
 	"github.com/andreykaipov/goobs/api/requests/inputs"
 	"github.com/andreykaipov/goobs/api/requests/sceneitems"
+	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
 	"github.com/sohosai/ultradonguri-server/internal/utils"
 )
 
@@ -73,12 +74,12 @@ func (self *AudioClient) UnMute() error {
 	return self.SetMute(false)
 }
 
-func (self *AudioClient) GetMute() (bool, error) {
+func (self *AudioClient) GetMute() (entities.MuteState, error) {
 
 	res, err := self.obsClient.Inputs.GetInputMute(inputs.NewGetInputMuteParams().WithInputUuid(self.inputUuid))
 	if err != nil {
-		return false, err
+		return entities.MuteState{}, err
 	}
 
-	return res.InputMuted, nil
+	return entities.MuteState{IsMuted: res.InputMuted}, nil
 }

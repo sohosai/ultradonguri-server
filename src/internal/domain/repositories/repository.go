@@ -9,7 +9,7 @@ type AudioService interface {
 	Mute() error
 	UnMute() error
 	SetMute(bool) error
-	GetMute() (bool, error)
+	GetMute() (entities.MuteState, error)
 }
 
 type TelopStore interface {

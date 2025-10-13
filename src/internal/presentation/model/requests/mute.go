@@ -7,8 +7,8 @@ type MuteStateRequest struct {
 	IsMuted bool `json:"is_muted"`
 }
 
-func NewMuteStateRequest(muteState entities.MuteState) MuteStateRequest {
-	return MuteStateRequest{
-		IsMuted: muteState.IsMuted,
+func (m MuteStateRequest) ToDomainMute() entities.MuteState {
+	return entities.MuteState{
+		IsMuted: m.IsMuted,
 	}
 }
