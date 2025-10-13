@@ -9,6 +9,7 @@ import (
 )
 
 func GetPerformances() ([]entities.PerformanceForPerformances, error) {
+	//ファイル名は後々変更
 	file, err := os.Open("events.json")
 	if err != nil {
 		return nil, err
