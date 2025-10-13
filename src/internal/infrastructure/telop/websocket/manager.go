@@ -12,15 +12,15 @@ import (
 
 // websocket の通信の集合
 type WebSocketHub struct {
-	mu    sync.Mutex
-	conns map[*websocket.Conn]bool
-	queue chan entities.TelopMessage
+	mu           sync.Mutex
+	conns        map[*websocket.Conn]bool
+	telopChannel chan entities.TelopMessage
 }
 
 func NewWebSocketHub(bufferSize int) *WebSocketHub {
 	return &WebSocketHub{
-		conns: make(map[*websocket.Conn]bool),
-		queue: make(chan entities.TelopMessage, bufferSize),
+		conns:        make(map[*websocket.Conn]bool),
+		telopChannel: make(chan entities.TelopMessage, bufferSize),
 	}
 }
 
@@ -38,11 +38,11 @@ func (h *WebSocketHub) RemoveConnection(conn *websocket.Conn) {
 }
 
 func (h *WebSocketHub) PushTelop(telop entities.TelopMessage) {
-	h.queue <- telop
+	h.telopChannel <- telop
 }
 
 func (h *WebSocketHub) StartTelopWebsocketBroadcastWorker() {
-	for telop := range h.queue {
+	for telop := range h.telopChannel {
 		h.mu.Lock()
 		conns := make([]*websocket.Conn, 0, len(h.conns))
 		for conn := range h.conns {
