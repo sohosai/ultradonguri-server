@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/andreykaipov/goobs"
 	"github.com/gin-gonic/gin"
+
 	"github.com/sohosai/ultradonguri-server/internal/infrastructure/audio"
 	"github.com/sohosai/ultradonguri-server/internal/infrastructure/telop"
 	"github.com/sohosai/ultradonguri-server/internal/infrastructure/telop/websocket"
@@ -13,10 +15,15 @@ import (
 )
 
 func main() {
-	ADDR := "192.168.0.38:4455"
-	PASS := "FiXyBLyCug7xt2Zw"
-	SCENE := "Dev"
-	AUDIO_INPUT := "Audio Input2"
+	ADDR := os.Getenv("ADDRESS")
+	PASS := os.Getenv("PASSWORD")
+	SCENE := os.Getenv("SCENE_NAME")
+	AUDIO_INPUT := os.Getenv("AUDIO_INPUT_NAME")
+
+	fmt.Printf("ADDR: %s\n", ADDR)
+	fmt.Printf("PASS: %s\n", PASS)
+	fmt.Printf("SCENE: %s\n", SCENE)
+	fmt.Printf("AUDIO_INPUT: %s\n", AUDIO_INPUT)
 
 	obsClient, err := goobs.New(ADDR, goobs.WithPassword(PASS))
 	if err != nil {
