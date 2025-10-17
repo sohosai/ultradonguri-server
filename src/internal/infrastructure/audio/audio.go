@@ -14,7 +14,8 @@ type AudioClient struct {
 	// normalSceneUuid string
 	// mutedSceneUuid  string
 	// cmSceneUuid     string
-	isForceMuted bool
+	shouldBeMuted bool
+	isForceMuted  bool
 }
 
 // sceneのName or UUIDをまとめた型
@@ -62,9 +63,10 @@ func NewAudioClient(obsClient *goobs.Client, scenes Scenes) (*AudioClient, error
 	SwitchScene(obsClient, sceneUUIDs.Normal)
 
 	return &AudioClient{
-		obsClient:    obsClient,
-		scenes:       sceneUUIDs,
-		isForceMuted: false,
+		obsClient:     obsClient,
+		scenes:        sceneUUIDs,
+		shouldBeMuted: false,
+		isForceMuted:  false,
 	}, nil
 }
 
@@ -89,12 +91,12 @@ func (self *AudioClient) SetMute(state bool) error {
 }
 
 func (self *AudioClient) Mute() error {
-	err := SwitchScene(self.obsClient, self.scenes.Muted)
+	err := self.SetMute(true)
 	return err
 }
 
 func (self *AudioClient) UnMute() error {
-	err := SwitchScene(self.obsClient, self.scenes.Normal)
+	err := self.SetMute(false)
 	return err
 }
 
@@ -113,5 +115,10 @@ func (self *AudioClient) GetMute() (entities.MuteState, error) {
 
 func (self *AudioClient) SetForceMute(state bool) error {
 	self.isForceMuted = state
+	return nil
+}
+
+func (self *AudioClient) SetShouldBeMuted(state bool) error {
+	self.shouldBeMuted = state
 	return nil
 }
