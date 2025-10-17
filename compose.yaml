@@ -1,0 +1,27 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./src:/app/src:cached
+      - app-data:/app
+    ports: 
+      - 8080:8080
+    networks:
+      - app-network
+    env_file: .env
+    command: 
+      - /bin/sh
+      - -c
+      - |
+        cd ./src
+        go mod download
+        air -c .air.toml
+
+networks:
+  app-network:
+
+volumes:
+  app-data:
+
