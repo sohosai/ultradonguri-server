@@ -59,15 +59,17 @@ func NewAudioClient(obsClient *goobs.Client, scenes Scenes) (*AudioClient, error
 		CM:     cmUUID,
 	}
 
-	//初期シーンを設定する必要があるかどうかは後で考える
-	SwitchScene(obsClient, sceneUUIDs.Normal)
-
-	return &AudioClient{
+	audioClient := &AudioClient{
 		obsClient:     obsClient,
 		scenes:        sceneUUIDs,
 		shouldBeMuted: false,
 		isForceMuted:  false,
-	}, nil
+	}
+
+	//初期シーンを設定する必要があるかどうかは後で考える
+	audioClient.SetNormalScene()
+
+	return audioClient, nil
 }
 
 func (self *AudioClient) SetMute(state bool) error {
@@ -76,12 +78,12 @@ func (self *AudioClient) SetMute(state bool) error {
 	}
 
 	if state == true {
-		err := SwitchScene(self.obsClient, self.scenes.Muted)
+		err := self.SetMutedScene()
 		if err != nil {
 			return err
 		}
 	} else {
-		err := SwitchScene(self.obsClient, self.scenes.Normal)
+		err := self.SetNormalScene()
 		if err != nil {
 			return err
 		}
@@ -103,7 +105,7 @@ func (self *AudioClient) UnMute() error {
 func (self *AudioClient) GetMute() (entities.MuteState, error) {
 
 	// sceneName, sceneUUID, err := GetCurrentScene(self.obsClient)
-	_, sceneUUID, err := GetCurrentScene(self.obsClient)
+	_, sceneUUID, err := self.GetCurrentScene()
 
 	// res, err := self.obsClient.Inputs.GetInputMute(inputs.NewGetInputMuteParams().WithInputUuid(self.inputUuid))
 	if err != nil {

@@ -12,6 +12,10 @@ type AudioService interface {
 	GetMute() (entities.MuteState, error)
 	SetForceMute(bool) error
 	SetShouldBeMuted(bool) error
+	SetNormalScene() error
+	SetMutedScene() error
+	SetCMScene() error
+	GetCurrentScene() (string, string, error)
 }
 
 type TelopStore interface {

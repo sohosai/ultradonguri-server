@@ -1,19 +1,32 @@
 package audio
 
 import (
-	"github.com/andreykaipov/goobs"
 	"github.com/andreykaipov/goobs/api/requests/scenes"
 )
 
-func SwitchScene(client *goobs.Client, sceneUUID string) error {
-	_, err := client.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
-		SceneUuid: &sceneUUID,
+func (self *AudioClient) SetNormalScene() error {
+	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
+		SceneUuid: &self.scenes.Normal,
 	})
 	return err
 }
 
-func GetCurrentScene(client *goobs.Client) (sceneName string, sceneUUID string, err error) {
-	resp, err := client.Scenes.GetCurrentProgramScene(&scenes.GetCurrentProgramSceneParams{})
+func (self *AudioClient) SetMutedScene() error {
+	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
+		SceneUuid: &self.scenes.Muted,
+	})
+	return err
+}
+
+func (self *AudioClient) SetCMScene() error {
+	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
+		SceneUuid: &self.scenes.CM,
+	})
+	return err
+}
+
+func (self *AudioClient) GetCurrentScene() (sceneName string, sceneUUID string, err error) {
+	resp, err := self.obsClient.Scenes.GetCurrentProgramScene(&scenes.GetCurrentProgramSceneParams{})
 	if err != nil {
 		return "", "", err
 	}
