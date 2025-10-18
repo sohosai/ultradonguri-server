@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -96,12 +95,12 @@ func (h *Handler) Handle(r *gin.Engine) {
 		// 	h.wsService.PushTelop(telopMessage.Unwrap())
 		// }
 
+		h.AudioService.SetIsConversion(false)
 		c.JSON(http.StatusOK, gin.H{"ok": true})
 	})
 
 	r.POST("/performance/music", func(c *gin.Context) {
 		var perf requests.MusicPostRequest
-		fmt.Println(perf)
 		if err := c.ShouldBindJSON(&perf); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -109,7 +108,6 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 		musicEntity := perf.ToDomainMusicPost()
 
-		fmt.Println(musicEntity)
 		//テロップは後で　受け取る型が変わっているため要変更
 		// h.TelopStore.SetPerformanceTelop(perfEntity)
 		// telopMessage := h.TelopStore.GetCurrentTelopMessage()
@@ -117,10 +115,13 @@ func (h *Handler) Handle(r *gin.Engine) {
 		// 	h.wsService.PushTelop(telopMessage.Unwrap())
 		// }
 
+		//performance中しか/musicを呼べなくするなら、そのステートもいるかも
+		//一旦簡易的にこちらでもisConersionをfalseにしておく
+		h.AudioService.SetIsConversion(false)
 		err := h.AudioService.SetShouldBeMuted(musicEntity.Music.ShouldBeMuted)
 		if err != nil {
 			//後でエラーを細かくする
-			// c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -149,7 +150,7 @@ func (h *Handler) Handle(r *gin.Engine) {
 			h.wsService.PushTelop(telopMessage.Unwrap())
 		}
 
-		h.AudioService.UnMute()
+		h.AudioService.SetIsConversion(true)
 		c.JSON(http.StatusOK, gin.H{"ok": true})
 	})
 
@@ -162,18 +163,25 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 		convEntity := conv.ToDomainCMState()
 
-		//コメントアウトにしておくが、ここでのテロップはいらないかも
+		//ここでのテロップはいらないかも
 		// h.TelopStore.SetConversionTelop(convEntity)
 		// telopMessage := h.TelopStore.GetCurrentTelopMessage()
 		// if telopMessage.IsSome() {
 		// 	h.wsService.PushTelop(telopMessage.Unwrap())
 		// }
 
-		if convEntity.IsCMMode == true {
-			h.AudioService.SetCMScene()
+		if convEntity.IsCMMode {
+			err := h.AudioService.SetCMScene()
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 		} else {
-			//強制ミュートのことを考えて、setMute(false)がただしいのかもしれない
-			h.AudioService.SetNormalScene()
+			err := h.AudioService.SetMute(false)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
 		}
 
 		c.JSON(http.StatusOK, gin.H{"ok": true})

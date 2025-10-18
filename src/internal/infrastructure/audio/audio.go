@@ -14,6 +14,7 @@ type AudioClient struct {
 	// normalSceneUuid string
 	// mutedSceneUuid  string
 	// cmSceneUuid     string
+	isConversion  bool
 	shouldBeMuted bool
 	isForceMuted  bool
 }
@@ -62,6 +63,7 @@ func NewAudioClient(obsClient *goobs.Client, scenes Scenes) (*AudioClient, error
 	audioClient := &AudioClient{
 		obsClient:     obsClient,
 		scenes:        sceneUUIDs,
+		isConversion:  false,
 		shouldBeMuted: false,
 		isForceMuted:  false,
 	}
@@ -73,11 +75,11 @@ func NewAudioClient(obsClient *goobs.Client, scenes Scenes) (*AudioClient, error
 }
 
 func (self *AudioClient) SetMute(state bool) error {
-	if self.isForceMuted == true {
+	if self.isForceMuted && !state {
 		return fmt.Errorf("cannot change mute state: force muted is active")
 	}
 
-	if state == true {
+	if state {
 		err := self.SetMutedScene()
 		if err != nil {
 			return err
@@ -105,9 +107,8 @@ func (self *AudioClient) UnMute() error {
 func (self *AudioClient) GetMute() (entities.MuteState, error) {
 
 	// sceneName, sceneUUID, err := GetCurrentScene(self.obsClient)
-	_, sceneUUID, err := self.GetCurrentScene()
+	sceneUUID, err := self.GetCurrentScene()
 
-	// res, err := self.obsClient.Inputs.GetInputMute(inputs.NewGetInputMuteParams().WithInputUuid(self.inputUuid))
 	if err != nil {
 		return entities.MuteState{}, err
 	}
@@ -116,11 +117,60 @@ func (self *AudioClient) GetMute() (entities.MuteState, error) {
 }
 
 func (self *AudioClient) SetForceMute(state bool) error {
+	currentSceneUuid, err := self.GetCurrentScene()
+	if err != nil {
+		return err
+	}
+
+	if currentSceneUuid == self.scenes.CM {
+		return fmt.Errorf("cannot change force_mute state: it's CM scene")
+	}
+
+	//解除は慎重に行う
+	if !state {
+		if self.shouldBeMuted {
+			return fmt.Errorf("cannot change force_mute state: There is music playing that needs to be muted")
+		}
+
+		//isForceMutedを先に書き換えないとと変更不可になってしまうため後でシーン変更
+		self.isForceMuted = state
+		err = self.SetMute(state)
+		if err != nil {
+			return err
+		}
+	} else {
+		//isForceMutedを先に書き換えると変更不可になってしまうため先にシーン変更
+		err = self.SetMute(state)
+		if err != nil {
+			return err
+		}
+		self.isForceMuted = state
+	}
+
+	//isForceMutedを先に書き換えると変更不可になってしまうため先にシーン変更
+	err = self.SetMute(state)
+	if err != nil {
+		return err
+	}
 	self.isForceMuted = state
+
 	return nil
 }
 
 func (self *AudioClient) SetShouldBeMuted(state bool) error {
 	self.shouldBeMuted = state
+
+	err := self.SetMute(state)
+	return err
+
+}
+
+func (self *AudioClient) SetIsConversion(state bool) error {
+	self.isConversion = state
+	// conversionでは基本的に音声ありだが、force_mute中は音声なしになる
+	if state {
+		err := self.SetMute(!state)
+		return err
+	}
 	return nil
 }
