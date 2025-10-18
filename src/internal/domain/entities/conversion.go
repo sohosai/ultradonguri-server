@@ -9,3 +9,7 @@ type NextPerformance struct {
 	Performer   string
 	Description string
 }
+
+type CMState struct {
+	IsCMMode bool
+}

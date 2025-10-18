@@ -12,6 +12,10 @@ type NextPerformanceRequest struct {
 	Description string `json:"description"`
 }
 
+type CMStateRequest struct {
+	IsCMMode bool `json:"is_cm_mode"`
+}
+
 func (conv ConversionRequest) ToDomainConversion() entities.ConversionPost {
 	var nextPerformances []entities.NextPerformance
 	for _, e := range conv.NextPerformances {
@@ -23,5 +27,11 @@ func (conv ConversionRequest) ToDomainConversion() entities.ConversionPost {
 	}
 	return entities.ConversionPost{
 		NextPerformances: nextPerformances,
+	}
+}
+
+func (cm CMStateRequest) ToDomainCMState() entities.CMState {
+	return entities.CMState{
+		IsCMMode: cm.IsCMMode,
 	}
 }

@@ -10,6 +10,13 @@ type AudioService interface {
 	UnMute() error
 	SetMute(bool) error
 	GetMute() (entities.MuteState, error)
+	SetForceMute(bool) error
+	SetShouldBeMuted(bool) error
+	SetIsConversion(bool) error
+	SetNormalScene() error
+	SetMutedScene() error
+	SetCMScene() error
+	GetCurrentScene() (string, error)
 }
 
 type TelopStore interface {
