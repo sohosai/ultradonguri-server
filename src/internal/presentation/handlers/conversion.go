@@ -15,7 +15,7 @@ type ConversionHandlers struct {
 	wsService    *websocket.WebSocketHub
 }
 
-func (h *ConversionHandlers) PostConversionTelop(c *gin.Context) {
+func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 	var conv requests.ConversionRequest
 	if err := c.ShouldBindJSON(&conv); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -30,7 +30,39 @@ func (h *ConversionHandlers) PostConversionTelop(c *gin.Context) {
 		h.wsService.PushTelop(telopMessage.Unwrap())
 	}
 
-	h.AudioService.UnMute()
+	h.AudioService.SetIsConversion(true)
 	c.JSON(http.StatusOK, gin.H{"ok": true})
+}
 
+func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
+	var conv requests.CMStateRequest
+	if err := c.ShouldBindJSON(&conv); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	convEntity := conv.ToDomainCMState()
+
+	//ここでのテロップはいらないかも
+	// h.TelopStore.SetConversionTelop(convEntity)
+	// telopMessage := h.TelopStore.GetCurrentTelopMessage()
+	// if telopMessage.IsSome() {
+	// 	h.wsService.PushTelop(telopMessage.Unwrap())
+	// }
+
+	if convEntity.IsCMMode {
+		err := h.AudioService.SetCMScene()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	} else {
+		err := h.AudioService.SetMute(false)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"ok": true})
 }

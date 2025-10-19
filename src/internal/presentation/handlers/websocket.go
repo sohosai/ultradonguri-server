@@ -12,9 +12,10 @@ import (
 type WebsocketHandlers struct {
 	TelopStore   repositories.TelopStore
 	AudioService repositories.AudioService
+	wsService    *websocket.WebSocketHub
 }
 
-func (h *ConversionHandlers) GetWebsocketConnection(c *gin.Context) {
+func (h *WebsocketHandlers) GetWebsocketConnection(c *gin.Context) {
 	wsConnection, err := websocket.Upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Println("upgrade:", err)
