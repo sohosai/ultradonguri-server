@@ -44,7 +44,7 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 		newMuteState := muteReq.ToDomainMute() //domainの型に変換
 
-		if err := h.AudioService.SetMute(newMuteState.IsMuted); err != nil {
+		if err := h.AudioService.SetForceMute(newMuteState.IsMuted); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -52,17 +52,18 @@ func (h *Handler) Handle(r *gin.Engine) {
 		c.JSON(http.StatusOK, gin.H{"ok": true})
 	})
 
-	r.GET("/force_mute", func(c *gin.Context) {
-		state, err := h.AudioService.GetMute()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+	//仕様からなくなっている
+	// r.GET("/force_mute", func(c *gin.Context) {
+	// 	state, err := h.AudioService.GetMute()
+	// 	if err != nil {
+	// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// 		return
+	// 	}
 
-		newMuteState := responses.NewMuteStateResponse(state) //返すjsonに変換するための型変換
+	// 	newMuteState := responses.NewMuteStateResponse(state) //返すjsonに変換するための型変換
 
-		c.JSON(http.StatusOK, newMuteState)
-	})
+	// 	c.JSON(http.StatusOK, newMuteState)
+	// })
 
 	// /performances
 	r.GET("/performances", func(c *gin.Context) {
@@ -78,32 +79,63 @@ func (h *Handler) Handle(r *gin.Engine) {
 	})
 
 	// /performance
-	r.POST("/performance", func(c *gin.Context) {
-		var perf requests.PerformancePostRequest
+	r.POST("/performance/start", func(c *gin.Context) {
+		var perf requests.PerformanceRequest
 		if err := c.ShouldBindJSON(&perf); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		perfEntity := perf.ToDomainPerformancePost()
+		//テロップは後で 受け取る型が変わっているため要変更
+		// perfEntity := perf.ToDomainPerformance()
 
-		h.TelopStore.SetPerformanceTelop(perfEntity)
-		telopMessage := h.TelopStore.GetCurrentTelopMessage()
-		if telopMessage.IsSome() {
-			h.wsService.PushTelop(telopMessage.Unwrap())
+		// h.TelopStore.SetPerformanceTelop(perfEntity)
+		// telopMessage := h.TelopStore.GetCurrentTelopMessage()
+		// if telopMessage.IsSome() {
+		// 	h.wsService.PushTelop(telopMessage.Unwrap())
+		// }
+
+		h.AudioService.SetIsConversion(false)
+		c.JSON(http.StatusOK, gin.H{"ok": true})
+	})
+
+	r.POST("/performance/music", func(c *gin.Context) {
+		var perf requests.MusicPostRequest
+		if err := c.ShouldBindJSON(&perf); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
 		}
 
-		if perf.Music.ShouldBeMuted {
-			h.AudioService.Mute()
+		musicEntity := perf.ToDomainMusicPost()
+
+		//テロップは後で　受け取る型が変わっているため要変更
+		// h.TelopStore.SetPerformanceTelop(perfEntity)
+		// telopMessage := h.TelopStore.GetCurrentTelopMessage()
+		// if telopMessage.IsSome() {
+		// 	h.wsService.PushTelop(telopMessage.Unwrap())
+		// }
+
+		//performance中しか/musicを呼べなくするなら、そのステートもいるかも
+		//一旦簡易的にこちらでもisConersionをfalseにしておく
+		h.AudioService.SetIsConversion(false)
+		err := h.AudioService.SetShouldBeMuted(musicEntity.Music.ShouldBeMuted)
+		if err != nil {
+			//後でエラーを細かくする
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if musicEntity.Music.ShouldBeMuted {
+			h.AudioService.SetMute(true)
 		} else {
-			h.AudioService.UnMute()
+			h.AudioService.SetMute(false)
 		}
 
 		c.JSON(http.StatusOK, gin.H{"ok": true})
 	})
 
 	// /conversion
-	r.POST("/conversion", func(c *gin.Context) {
+	r.POST("/conversion/start", func(c *gin.Context) {
 		var conv requests.ConversionRequest
 		if err := c.ShouldBindJSON(&conv); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -118,7 +150,40 @@ func (h *Handler) Handle(r *gin.Engine) {
 			h.wsService.PushTelop(telopMessage.Unwrap())
 		}
 
-		h.AudioService.UnMute()
+		h.AudioService.SetIsConversion(true)
+		c.JSON(http.StatusOK, gin.H{"ok": true})
+	})
+
+	r.POST("/conversion/cm-mode", func(c *gin.Context) {
+		var conv requests.CMStateRequest
+		if err := c.ShouldBindJSON(&conv); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		convEntity := conv.ToDomainCMState()
+
+		//ここでのテロップはいらないかも
+		// h.TelopStore.SetConversionTelop(convEntity)
+		// telopMessage := h.TelopStore.GetCurrentTelopMessage()
+		// if telopMessage.IsSome() {
+		// 	h.wsService.PushTelop(telopMessage.Unwrap())
+		// }
+
+		if convEntity.IsCMMode {
+			err := h.AudioService.SetCMScene()
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+		} else {
+			err := h.AudioService.SetMute(false)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+		}
+
 		c.JSON(http.StatusOK, gin.H{"ok": true})
 	})
 

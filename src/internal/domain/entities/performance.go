@@ -5,6 +5,10 @@ type PerformancePost struct {
 	Performance Performance
 }
 
+type MusicPost struct {
+	Music Music
+}
+
 type Music struct {
 	Title         string
 	Artist        string
@@ -13,5 +17,5 @@ type Music struct {
 
 type Performance struct {
 	Title     string
-	Performer *string // null を許すためポインタ
+	Performer string
 }

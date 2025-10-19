@@ -7,6 +7,14 @@ type PerformancePostRequest struct {
 	Performance PerformanceRequest `json:"performance"`
 }
 
+type MusicPostRequest struct {
+	Music MusicRequest `json:"music"`
+}
+
+type OnlyPerformancePostRequest struct {
+	Performance PerformanceRequest `json:"performance"`
+}
+
 type MusicRequest struct {
 	Title         string `json:"title"`
 	Artist        string `json:"artist"`
@@ -14,22 +22,34 @@ type MusicRequest struct {
 }
 
 type PerformanceRequest struct {
-	Title     string  `json:"title"`
-	Performer *string `json:"performer"` // null を許すためポインタ
+	Title     string `json:"title"`
+	Performer string `json:"performer"`
 }
 
-//現在(10/13)の仕様では必要になりそうなので残しておく
-// type PerformanceRequest struct {
-// 	Title     string  `json:"title"`
-// 	Performer *string `json:"performer"`
-// }
+func (m MusicPostRequest) ToDomainMusicPost() entities.MusicPost {
+	return entities.MusicPost{
+		Music: entities.Music{
+			Title:         m.Music.Title,
+			Artist:        m.Music.Artist,
+			ShouldBeMuted: m.Music.ShouldBeMuted,
+		},
+	}
+}
 
-// func (p PerformanceRequest) ToDomainPerformance() entities.Performance {
-// 	return entities.Performance{
-// 		Title:     p.Title,
-// 		Performer: p.Performer,
+// func (m MusicRequest) ToDomainMusicPost() entities.Music {
+// 	return entities.Music{
+// 		Title:         m.Title,
+// 		Artist:        m.Artist,
+// 		ShouldBeMuted: m.ShouldBeMuted,
 // 	}
 // }
+
+func (p PerformanceRequest) ToDomainPerformance() entities.Performance {
+	return entities.Performance{
+		Title:     p.Title,
+		Performer: p.Performer,
+	}
+}
 
 func (pp PerformancePostRequest) ToDomainPerformancePost() entities.PerformancePost {
 	return entities.PerformancePost{
