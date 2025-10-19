@@ -23,8 +23,23 @@ func NewTelopStore() *TelopStore {
 	}
 }
 
-func (self *TelopStore) SetPerformanceTelop(telop entities.PerformancePost) {
-	self.Performance = utils.Some(telop)
+func (self *TelopStore) SetPerformanceTelop(telop entities.Performance) {
+	self.Performance = utils.Some(entities.PerformancePost{
+		Performance: telop,
+	})
+	self.Conversion = utils.None[entities.ConversionPost]()
+	self.TelopType = entities.TelopTypePerformance
+
+	telopJson, _ := json.Marshal(telop)
+	// slog.Info("Telop changed: ", "performance", self.Performance)
+	log.Printf("Telop changed: %s", string(telopJson))
+
+}
+
+func (self *TelopStore) SetMusicTelop(telop entities.Music) {
+	self.Performance = utils.Some(entities.PerformancePost{
+		Music: telop,
+	})
 	self.Conversion = utils.None[entities.ConversionPost]()
 	self.TelopType = entities.TelopTypePerformance
 

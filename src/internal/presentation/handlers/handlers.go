@@ -34,6 +34,7 @@ func (h *Handler) Handle(r *gin.Engine) {
 	performanceHandler := PerformanceHandler{
 		AudioService: h.AudioService,
 		TelopStore:   h.TelopStore,
+		wsService:    h.wsService,
 	}
 
 	conversionHandlers := ConversionHandlers{

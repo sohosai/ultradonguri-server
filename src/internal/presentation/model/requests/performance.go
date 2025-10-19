@@ -26,23 +26,23 @@ type PerformanceRequest struct {
 	Performer string `json:"performer"`
 }
 
-func (m MusicPostRequest) ToDomainMusicPost() entities.MusicPost {
-	return entities.MusicPost{
-		Music: entities.Music{
-			Title:         m.Music.Title,
-			Artist:        m.Music.Artist,
-			ShouldBeMuted: m.Music.ShouldBeMuted,
-		},
-	}
-}
-
-// func (m MusicRequest) ToDomainMusicPost() entities.Music {
-// 	return entities.Music{
-// 		Title:         m.Title,
-// 		Artist:        m.Artist,
-// 		ShouldBeMuted: m.ShouldBeMuted,
+// func (m MusicPostRequest) ToDomainMusicPost() entities.MusicPost {
+// 	return entities.MusicPost{
+// 		Music: entities.Music{
+// 			Title:         m.Music.Title,
+// 			Artist:        m.Music.Artist,
+// 			ShouldBeMuted: m.Music.ShouldBeMuted,
+// 		},
 // 	}
 // }
+
+func (m MusicRequest) ToDomainMusicPost() entities.Music {
+	return entities.Music{
+		Title:         m.Title,
+		Artist:        m.Artist,
+		ShouldBeMuted: m.ShouldBeMuted,
+	}
+}
 
 func (p PerformanceRequest) ToDomainPerformance() entities.Performance {
 	return entities.Performance{

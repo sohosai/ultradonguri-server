@@ -7,20 +7,25 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
 )
 
 // websocket の通信の集合
 type WebSocketHub struct {
 	mu           sync.Mutex
 	conns        map[*websocket.Conn]bool
-	telopChannel chan entities.TelopMessage
+	telopChannel chan WebSocketResponse
+}
+
+// テロップとして送信するjsonの形が四種類になったので自由度を高めた。
+type WebSocketResponse struct {
+	Type WsMessageType   `json:"type"`
+	Data json.RawMessage `json:"data"`
 }
 
 func NewWebSocketHub(bufferSize int) *WebSocketHub {
 	return &WebSocketHub{
 		conns:        make(map[*websocket.Conn]bool),
-		telopChannel: make(chan entities.TelopMessage, bufferSize),
+		telopChannel: make(chan WebSocketResponse, bufferSize),
 	}
 }
 
@@ -33,11 +38,13 @@ func (h *WebSocketHub) AddConnection(conn *websocket.Conn) {
 func (h *WebSocketHub) RemoveConnection(conn *websocket.Conn) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	delete(h.conns, conn)
-	conn.Close()
+	if _, ok := h.conns[conn]; ok {
+		delete(h.conns, conn)
+		conn.Close()
+	}
 }
 
-func (h *WebSocketHub) PushTelop(telop entities.TelopMessage) {
+func (h *WebSocketHub) PushTelop(telop WebSocketResponse) {
 	h.telopChannel <- telop
 }
 
