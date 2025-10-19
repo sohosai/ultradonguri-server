@@ -9,28 +9,14 @@ import (
 func (self *AudioClient) SetNormalScene() error {
 	//CMシーン中のシーン切り替えを許さない（CM解除以外の）
 	//仕様にどうすべきか明記されていなかったため、変更の可能性あり
-	current_scene, err := self.GetCurrentScene()
-	if err != nil {
-		return err
-	}
-	if current_scene == self.scenes.CM {
-		return fmt.Errorf("cannot change scene: it's CM scene")
-	}
-	_, err = self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
+	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
 		SceneUuid: &self.scenes.Normal,
 	})
 	return err
 }
 
 func (self *AudioClient) SetMutedScene() error {
-	current_scene, err := self.GetCurrentScene()
-	if err != nil {
-		return err
-	}
-	if current_scene == self.scenes.CM {
-		return fmt.Errorf("cannot change scene: it's CM scene")
-	}
-	_, err = self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
+	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
 		SceneUuid: &self.scenes.Muted,
 	})
 	return err
