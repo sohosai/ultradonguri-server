@@ -95,9 +95,8 @@ func (self *SceneManager) SetMute(state bool) error {
 	return self.SetMutedScene()
 }
 
-func (self *SceneManager) SetForceMuteFlag(state bool) error {
+func (self *SceneManager) SetForceMuteFlag(state bool) {
 	self.isForceMutedFlag = state
-	return nil
 }
 
 func (self *SceneManager) isCm() (bool, error) {
