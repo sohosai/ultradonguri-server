@@ -4,82 +4,157 @@ import (
 	"fmt"
 
 	"github.com/andreykaipov/goobs"
-	"github.com/andreykaipov/goobs/api/requests/inputs"
-	"github.com/andreykaipov/goobs/api/requests/sceneitems"
-	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
 	"github.com/sohosai/ultradonguri-server/internal/utils"
 )
 
 type AudioClient struct {
-	obsClient   *goobs.Client
-	sceneUuid   string
-	inputUuid   string
-	sceneItemId int
+	obsClient *goobs.Client
+	scenes    Scenes
+	// normalSceneUuid string
+	// mutedSceneUuid  string
+	// cmSceneUuid     string
+	isConversion  bool
+	shouldBeMuted bool
+	isForceMuted  bool
 }
 
-func NewAudioClient(obsClient *goobs.Client, sceneName string, inputName string) (*AudioClient, error) {
+// sceneのName or UUIDをまとめた型
+type Scenes struct {
+	Normal string
+	Muted  string
+	CM     string
+}
+
+func NewAudioClient(obsClient *goobs.Client, scenes Scenes) (*AudioClient, error) {
 	// sceneUuid := ""
 	// inputUuid := ""
 	// sceneItemId := 0
 
 	// sceneNameからsceneUuidを取得する。取得できなければ、そのようなsceneNameのSceneが存在しないと判断してエラー
-	sceneUuid, err := utils.FindSceneByName(obsClient, sceneName)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to find scene named %s: %s", sceneName, err)
+	// sceneNameはobsから容易に変更可能なので安全性のためにUUIDを用いる
+	resolve := func(name string) (string, error) {
+		uuid, err := utils.FindSceneByName(obsClient, name)
+		if err != nil {
+			return "", fmt.Errorf("failed to find scene named %s: %w", name, err)
+		}
+		return uuid, nil
 	}
 
-	// inputNameからinputUuidを取得する。取得できなければ、そのようなinputNameのInputが存在しないと判断してエラー
-	inputUuid, err := utils.FindInputByName(obsClient, inputName)
+	normalUUID, err := resolve(scenes.Normal)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to find input named %s: %s", inputName, err)
+		return nil, err
+	}
+	mutedUUID, err := resolve(scenes.Muted)
+	if err != nil {
+		return nil, err
+	}
+	cmUUID, err := resolve(scenes.CM)
+	if err != nil {
+		return nil, err
 	}
 
-	// 最初からオーディオのInputはSceneItemになっているはずなので、それを確認し、なっていなかったらエラー
-	// 同一のSceneに同一のInputが複数のSceneItemとして登録されうるが、この場合一番始めに見つかったものが返されるのだろうか。
-	// 一旦一番始めに見つかったものを使う
-	sceneItemId, err := obsClient.SceneItems.GetSceneItemId(
-		sceneitems.NewGetSceneItemIdParams().
-			WithSceneUuid(sceneUuid).
-			WithSceneName(sceneName).
-			WithSourceName(inputName))
-	if err != nil {
-		return nil, fmt.Errorf("Failed to find scene item id: %s", err)
+	sceneUUIDs := Scenes{
+		Normal: normalUUID,
+		Muted:  mutedUUID,
+		CM:     cmUUID,
 	}
 
-	return &AudioClient{
-		obsClient:   obsClient,
-		sceneUuid:   sceneUuid,
-		inputUuid:   inputUuid,
-		sceneItemId: sceneItemId.SceneItemId,
-	}, nil
+	audioClient := &AudioClient{
+		obsClient:     obsClient,
+		scenes:        sceneUUIDs,
+		isConversion:  false,
+		shouldBeMuted: false,
+		isForceMuted:  false,
+	}
+
+	//初期シーンを設定する必要があるかどうかは後で考える
+	audioClient.SetNormalScene()
+
+	return audioClient, nil
 }
 
 func (self *AudioClient) SetMute(state bool) error {
-	// fmt.Println("Input UUID:", self.inputUuid)
-	// resp, err := self.obsClient.Inputs.SetInputMute(
-	_, err := self.obsClient.Inputs.SetInputMute(
-		inputs.NewSetInputMuteParams().
-			WithInputUuid(self.inputUuid).
-			WithInputMuted(state))
-
-	// fmt.Println("Response from SetMute:", resp)
-	return err
-}
-
-func (self *AudioClient) Mute() error {
-	return self.SetMute(true)
-}
-
-func (self *AudioClient) UnMute() error {
-	return self.SetMute(false)
-}
-
-func (self *AudioClient) GetMute() (entities.MuteState, error) {
-
-	res, err := self.obsClient.Inputs.GetInputMute(inputs.NewGetInputMuteParams().WithInputUuid(self.inputUuid))
-	if err != nil {
-		return entities.MuteState{}, err
+	if self.isForceMuted && !state {
+		return fmt.Errorf("cannot change mute state: force muted is active")
 	}
 
-	return entities.MuteState{IsMuted: res.InputMuted}, nil
+	if state {
+		err := self.SetMutedScene()
+		if err != nil {
+			return err
+		}
+	} else {
+		err := self.SetNormalScene()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// /for
+// func (self *AudioClient) GetMute() (entities.MuteState, error) {
+
+// 	// sceneName, sceneUUID, err := GetCurrentScene(self.obsClient)
+// 	sceneUUID, err := self.GetCurrentScene()
+
+// 	if err != nil {
+// 		return entities.MuteState{}, err
+// 	}
+
+// 	// CMシーンでもfalse
+// 	return entities.MuteState{IsMuted: sceneUUID == self.scenes.Muted}, nil
+// }
+
+func (self *AudioClient) SetForceMute(state bool) error {
+	currentSceneUuid, err := self.GetCurrentScene()
+	if err != nil {
+		return err
+	}
+
+	if currentSceneUuid == self.scenes.CM {
+		return fmt.Errorf("cannot change force_mute state: it's CM scene")
+	}
+
+	//解除は慎重に行う
+	if !state {
+		if self.shouldBeMuted {
+			return fmt.Errorf("cannot change force_mute state: There is music playing that needs to be muted")
+		}
+
+		//isForceMutedを先に書き換えないとと変更不可になってしまうため後でシーン変更
+		self.isForceMuted = state
+		err = self.SetMute(state)
+		if err != nil {
+			return err
+		}
+	} else {
+		//isForceMutedを先に書き換えると変更不可になってしまうため先にシーン変更
+		err = self.SetMute(state)
+		if err != nil {
+			return err
+		}
+		self.isForceMuted = state
+	}
+
+	return nil
+}
+
+func (self *AudioClient) SetShouldBeMuted(state bool) error {
+	self.shouldBeMuted = state
+
+	err := self.SetMute(state)
+	return err
+
+}
+
+func (self *AudioClient) SetIsConversion(state bool) error {
+	self.isConversion = state
+	// conversionでは基本的に音声ありだが、force_mute中は音声なしになる
+	if state {
+		err := self.SetMute(!state)
+		return err
+	}
+	return nil
 }

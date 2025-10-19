@@ -17,13 +17,13 @@ import (
 func main() {
 	ADDR := os.Getenv("ADDRESS")
 	PASS := os.Getenv("PASSWORD")
-	SCENE := os.Getenv("SCENE_NAME")
-	AUDIO_INPUT := os.Getenv("AUDIO_INPUT_NAME")
+	scenes := audio.Scenes{
+		Normal: os.Getenv("NORMAL_SCENE_NAME"),
+		Muted:  os.Getenv("MUTED_SCENE_NAME"),
+		CM:     os.Getenv("CM_SCENE_NAME"),
+	}
 
-	fmt.Printf("ADDR: %s\n", ADDR)
-	fmt.Printf("PASS: %s\n", PASS)
-	fmt.Printf("SCENE: %s\n", SCENE)
-	fmt.Printf("AUDIO_INPUT: %s\n", AUDIO_INPUT)
+	// fmt.Printf("ADDR: %s\n", ADDR)
 
 	obsClient, err := goobs.New(ADDR, goobs.WithPassword(PASS))
 	if err != nil {
@@ -31,7 +31,7 @@ func main() {
 	}
 	defer obsClient.Disconnect()
 
-	audioClient, err := audio.NewAudioClient(obsClient, SCENE, AUDIO_INPUT) // nil は本番では goobs.Client を渡す
+	audioClient, err := audio.NewAudioClient(obsClient, scenes) // nil は本番では goobs.Client を渡す
 	if err != nil {
 		panic(err)
 	}
