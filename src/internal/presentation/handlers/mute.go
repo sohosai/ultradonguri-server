@@ -37,12 +37,43 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 
 	newMuteState := muteReq.ToDomainMute() //domainの型に変換
 
-	if err := h.SceneManager.SetForceMute(newMuteState.IsMuted); err != nil {
-		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-			Kind: entities.CannotForceMute})
-		c.JSON(status, errRes)
+	if newMuteState.IsMuted {
+		// 強制ミュートをする場合
+		// forceMuteFlagを有効化する
+		h.SceneManager.SetForceMuteFlag(true)
+
+		// SceneをMuteに切り替える
+		// ロジックはSceneManagerへ任せる
+		if err := h.SceneManager.SetMute(true); err != nil {
+			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+				Kind: entities.CannotForceMute})
+			c.JSON(status, errRes)
+			return
+		}
+
+		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 		return
 	}
 
+	// 強制ミュートを解除する場合
+
+	// forceMuteFlagを無効化する
+	h.SceneManager.SetForceMuteFlag(false)
+
+	if h.TelopManager.IsConversion() || !h.TelopManager.ShouldBeMuted() {
+		// 現在のTelopがConversion
+		// または
+		// 現在のTelopがPerformanceでMusicがshould_be_muted=falseの場合
+
+		// SceneをNormalへ移行する
+		h.SceneManager.SetNormalScene()
+
+		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+		return
+	}
+
+	// ミュート状態自体は継続する場合
+
+	// 結果をエラーにするのかどうかは後で決める
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 }

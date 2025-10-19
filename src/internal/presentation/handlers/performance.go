@@ -84,7 +84,10 @@ func (h *PerformanceHandler) PostPerformanceMusic(c *gin.Context) {
 
 	musicEntity := music.ToDomainMusicPost()
 
+	// Telopを設定する
 	h.TelopManager.SetMusicTelop(musicEntity)
+
+	// Viewerへの通知
 	telopMessage := h.TelopManager.GetCurrentTelopMessage()
 	if telopMessage.IsSome() {
 		resp, err := websocket.TypedWebSocketResponse[websocket.PerformanceMusicData]{
@@ -98,8 +101,6 @@ func (h *PerformanceHandler) PostPerformanceMusic(c *gin.Context) {
 		h.wsService.PushTelop(resp)
 	}
 
-	//performance中しか/musicを呼べなくするなら、そのステートもいるかも
-	//一旦簡易的にこちらでもisConersionをfalseにしておく
 	err := h.SceneManager.SetMute(musicEntity.ShouldBeMuted)
 	if err != nil {
 		//後でエラーを細かくする
