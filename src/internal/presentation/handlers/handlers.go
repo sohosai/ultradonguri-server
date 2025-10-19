@@ -51,7 +51,7 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 	r.GET("/health", healthHandler.GetHealth)
 
-	r.POST("/force_mute", muteHandler.PostForceMute)
+	r.POST("/force_mute", muteHandler.PostForceMuted)
 	r.GET("/performances", performancesHandler.GetPerformances)
 
 	performanceRoutes := r.Group("/performance")
