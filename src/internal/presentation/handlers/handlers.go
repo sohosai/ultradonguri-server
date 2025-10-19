@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
 	"github.com/sohosai/ultradonguri-server/internal/domain/repositories"
 	"github.com/sohosai/ultradonguri-server/internal/presentation/model/requests"
 	"github.com/sohosai/ultradonguri-server/internal/presentation/model/responses"
@@ -87,13 +88,21 @@ func (h *Handler) Handle(r *gin.Engine) {
 		}
 
 		//テロップは後で 受け取る型が変わっているため要変更
-		// perfEntity := perf.ToDomainPerformance()
+		perfEntity := perf.ToDomainPerformance()
 
-		// h.TelopStore.SetPerformanceTelop(perfEntity)
-		// telopMessage := h.TelopStore.GetCurrentTelopMessage()
-		// if telopMessage.IsSome() {
-		// 	h.wsService.PushTelop(telopMessage.Unwrap())
-		// }
+		h.TelopStore.SetPerformanceTelop(perfEntity)
+		telopMessage := h.TelopStore.GetCurrentTelopMessage()
+		if telopMessage.IsSome() {
+			resp, err := websocket.TypedWebSocketResponse[entities.Performance]{
+				Type: websocket.TypePerformanceStart,
+				Data: perfEntity, //ちゃんと、getの関数を書いて、telopClientから読むべきかも
+			}.Encode()
+			if err != nil {
+				return
+			}
+			log.Println(resp)
+			h.wsService.PushTelop(resp)
+		}
 
 		h.AudioService.SetIsConversion(false)
 		c.JSON(http.StatusOK, gin.H{"ok": true})

@@ -18,7 +18,8 @@ type AudioService interface {
 }
 
 type TelopStore interface {
-	SetPerformanceTelop(entities.PerformancePost)
+	SetPerformanceTelop(entities.Performance)
+	SetMusicTelop(entities.Music)
 	SetConversionTelop(entities.ConversionPost)
 	GetCurrentTelopMessage() utils.Option[entities.TelopMessage]
 }
