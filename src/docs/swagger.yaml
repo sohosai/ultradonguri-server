@@ -12,11 +12,6 @@ definitions:
           $ref: '#/definitions/requests.NextPerformanceRequest'
         type: array
     type: object
-  requests.MusicPostRequest:
-    properties:
-      music:
-        $ref: '#/definitions/requests.MusicRequest'
-    type: object
   requests.MusicRequest:
     properties:
       artist:
@@ -199,7 +194,7 @@ paths:
         name: performanceMusic
         required: true
         schema:
-          $ref: '#/definitions/requests.MusicPostRequest'
+          $ref: '#/definitions/requests.MusicRequest'
       produces:
       - application/json
       responses:

@@ -175,7 +175,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.MusicPostRequest"
+                            "$ref": "#/definitions/requests.MusicRequest"
                         }
                     }
                 ],
@@ -282,14 +282,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/requests.NextPerformanceRequest"
                     }
-                }
-            }
-        },
-        "requests.MusicPostRequest": {
-            "type": "object",
-            "properties": {
-                "music": {
-                    "$ref": "#/definitions/requests.MusicRequest"
                 }
             }
         },

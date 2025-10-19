@@ -168,7 +168,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/requests.MusicPostRequest"
+                            "$ref": "#/definitions/requests.MusicRequest"
                         }
                     }
                 ],
@@ -275,14 +275,6 @@
                     "items": {
                         "$ref": "#/definitions/requests.NextPerformanceRequest"
                     }
-                }
-            }
-        },
-        "requests.MusicPostRequest": {
-            "type": "object",
-            "properties": {
-                "music": {
-                    "$ref": "#/definitions/requests.MusicRequest"
                 }
             }
         },
