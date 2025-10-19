@@ -3,20 +3,18 @@ package websocket
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"reflect"
 )
 
 // ジェネリクスの型でpresentation層から受け取り、エンコードする。
 type TypedWebSocketResponse[T any] struct {
-	Type string
+	Type WsMessageType
 	Data T
 }
 
 // 型が矛盾していないかをチェックしてtelop送信用のWebSocketResponseに変換
 func (t TypedWebSocketResponse[T]) Encode() (WebSocketResponse, error) {
 	rt := reflect.TypeOf(t.Data)
-	log.Printf("%v", rt)
 	expectedType, ok := typeRegistry[rt]
 	if !ok {
 		return WebSocketResponse{}, fmt.Errorf("unregistered type: %v", rt)
@@ -24,9 +22,7 @@ func (t TypedWebSocketResponse[T]) Encode() (WebSocketResponse, error) {
 	if t.Type != expectedType {
 		return WebSocketResponse{}, fmt.Errorf("type mismatch: expected %s for %v, got %s", expectedType, rt, t.Type)
 	}
-	log.Printf("t.Data: %v", t.Data)
 	b, err := json.Marshal(t.Data)
-	log.Printf("b: %v", b)
 	if err != nil {
 		return WebSocketResponse{}, err
 	}

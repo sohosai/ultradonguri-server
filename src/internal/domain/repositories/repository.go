@@ -7,7 +7,6 @@ import (
 
 type AudioService interface {
 	SetMute(bool) error
-	// GetMute() (entities.MuteState, error)
 	SetForceMute(bool) error
 	SetShouldBeMuted(bool) error
 	SetIsConversion(bool) error

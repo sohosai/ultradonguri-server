@@ -32,15 +32,17 @@ type NextPerformanceData struct {
 	Description string `json:"description"`
 }
 
+type WsMessageType string
+
 const (
-	TypePerformanceStart = "/performance/start"
-	TypePerformanceMusic = "/performance/music"
-	TypeConversionStart  = "/conversion/start"
-	TypeConversionCmMode = "/conversion/cm-mode"
+	TypePerformanceStart WsMessageType = "/performance/start"
+	TypePerformanceMusic WsMessageType = "/performance/music"
+	TypeConversionStart  WsMessageType = "/conversion/start"
+	TypeConversionCmMode WsMessageType = "/conversion/cm-mode"
 )
 
 // wsで送信するdataに乗せる型とエンドポイントが正しいかの判断用のマップ
-var typeRegistry = map[reflect.Type]string{
+var typeRegistry = map[reflect.Type]WsMessageType{
 	reflect.TypeOf(PerformanceStartData{}): TypePerformanceStart,
 	reflect.TypeOf(PerformanceMusicData{}): TypePerformanceMusic,
 	reflect.TypeOf(ConversionStartData{}):  TypeConversionStart,

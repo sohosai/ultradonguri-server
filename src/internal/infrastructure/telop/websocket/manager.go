@@ -18,7 +18,7 @@ type WebSocketHub struct {
 
 // テロップとして送信するjsonの形が四種類になったので自由度を高めた。
 type WebSocketResponse struct {
-	Type string          `json:"type"`
+	Type WsMessageType   `json:"type"`
 	Data json.RawMessage `json:"data"`
 }
 
