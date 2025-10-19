@@ -14,7 +14,7 @@ import (
 
 type PerformanceHandler struct {
 	AudioService repositories.AudioService
-	TelopStore   repositories.TelopStore
+	TelopManager repositories.TelopManager
 	wsService    *websocket.WebSocketHub
 }
 
@@ -39,8 +39,8 @@ func (h *PerformanceHandler) PostPerformanceStart(c *gin.Context) {
 
 	perfEntity := perf.ToDomainPerformance()
 
-	h.TelopStore.SetPerformanceTelop(perfEntity)
-	telopMessage := h.TelopStore.GetCurrentTelopMessage()
+	h.TelopManager.SetPerformanceTelop(perfEntity)
+	telopMessage := h.TelopManager.GetCurrentTelopMessage()
 	if telopMessage.IsSome() {
 		resp, err := websocket.TypedWebSocketResponse[websocket.PerformanceStartData]{
 			Type: websocket.TypePerformanceStart,
@@ -76,8 +76,8 @@ func (h *PerformanceHandler) PostPerformanceMusic(c *gin.Context) {
 
 	musicEntity := music.ToDomainMusicPost()
 
-	h.TelopStore.SetMusicTelop(musicEntity)
-	telopMessage := h.TelopStore.GetCurrentTelopMessage()
+	h.TelopManager.SetMusicTelop(musicEntity)
+	telopMessage := h.TelopManager.GetCurrentTelopMessage()
 	if telopMessage.IsSome() {
 		resp, err := websocket.TypedWebSocketResponse[websocket.PerformanceMusicData]{
 			Type: websocket.TypePerformanceMusic,

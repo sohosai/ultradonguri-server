@@ -46,9 +46,9 @@ func main() {
 	wsHub := websocket.NewWebSocketHub(5)
 	go wsHub.StartTelopWebsocketBroadcastWorker()
 
-	telopStore := telop.NewTelopStore()
+	telopManager := telop.NewTelopManager()
 
-	h := handlers.NewHandler(audioClient, telopStore, wsHub)
+	h := handlers.NewHandler(audioClient, telopManager, wsHub)
 
 	r := gin.Default()
 	h.Handle(r)

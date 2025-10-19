@@ -12,7 +12,7 @@ import (
 )
 
 type ConversionHandlers struct {
-	TelopStore   repositories.TelopStore
+	TelopManager repositories.TelopManager
 	AudioService repositories.AudioService
 	wsService    *websocket.WebSocketHub
 }
@@ -38,8 +38,8 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 
 	convEntity := conv.ToDomainConversion()
 
-	h.TelopStore.SetConversionTelop(convEntity)
-	telopMessage := h.TelopStore.GetCurrentTelopMessage()
+	h.TelopManager.SetConversionTelop(convEntity)
+	telopMessage := h.TelopManager.GetCurrentTelopMessage()
 	if telopMessage.IsSome() {
 		resp, err := websocket.TypedWebSocketResponse[websocket.ConversionStartData]{
 			Type: websocket.TypeConversionStart,

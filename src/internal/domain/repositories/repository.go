@@ -16,7 +16,7 @@ type AudioService interface {
 	GetCurrentScene() (string, error)
 }
 
-type TelopStore interface {
+type TelopManager interface {
 	SetPerformanceTelop(entities.Performance)
 	SetMusicTelop(entities.Music)
 	SetConversionTelop(entities.ConversionPost)
