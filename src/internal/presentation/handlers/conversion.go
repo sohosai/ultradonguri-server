@@ -39,18 +39,15 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 	convEntity := conv.ToDomainConversion()
 
 	h.TelopManager.SetConversionTelop(convEntity)
-	telopMessage := h.TelopManager.GetCurrentTelopMessage()
-	if telopMessage.IsSome() {
-		resp, err := websocket.TypedWebSocketResponse[websocket.ConversionStartData]{
-			Type: websocket.TypeConversionStart,
-			Data: websocket.ToDataConvStart(convEntity),
-		}.Encode()
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		h.wsService.PushTelop(resp)
+	resp, err := websocket.TypedWebSocketResponse[websocket.ConversionStartData]{
+		Type: websocket.TypeConversionStart,
+		Data: websocket.ToDataConvStart(convEntity),
+	}.Encode()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
+	h.wsService.PushTelop(resp)
 
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 }
