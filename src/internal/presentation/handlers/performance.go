@@ -40,18 +40,17 @@ func (h *PerformanceHandler) PostPerformanceStart(c *gin.Context) {
 	perfEntity := perf.ToDomainPerformance()
 
 	h.TelopManager.SetPerformanceTelop(perfEntity)
-	telopMessage := h.TelopManager.GetCurrentTelopMessage()
-	if telopMessage.IsSome() {
-		resp, err := websocket.TypedWebSocketResponse[websocket.PerformanceStartData]{
-			Type: websocket.TypePerformanceStart,
-			Data: websocket.ToDataPerfStart(perfEntity), //ちゃんと、getの関数を書いて、telopClientから読むべきかも
-		}.Encode()
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		h.wsService.PushTelop(resp)
+
+	// Viewerへ通知
+	resp, err := websocket.TypedWebSocketResponse[websocket.PerformanceStartData]{
+		Type: websocket.TypePerformanceStart,
+		Data: websocket.ToDataPerfStart(perfEntity),
+	}.Encode()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
+	h.wsService.PushTelop(resp)
 
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 }
