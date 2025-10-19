@@ -1,5 +1,91 @@
 basePath: /
 definitions:
+  requests.CMStateRequest:
+    properties:
+      is_cm_mode:
+        type: boolean
+    type: object
+  requests.ConversionRequest:
+    properties:
+      next_performances:
+        items:
+          $ref: '#/definitions/requests.NextPerformanceRequest'
+        type: array
+    type: object
+  requests.MusicPostRequest:
+    properties:
+      music:
+        $ref: '#/definitions/requests.MusicRequest'
+    type: object
+  requests.MusicRequest:
+    properties:
+      artist:
+        type: string
+      should_be_muted:
+        type: boolean
+      title:
+        type: string
+    type: object
+  requests.MuteStateRequest:
+    properties:
+      is_muted:
+        type: boolean
+    type: object
+  requests.NextPerformanceRequest:
+    properties:
+      description:
+        type: string
+      performer:
+        type: string
+      title:
+        type: string
+    type: object
+  requests.PerformanceRequest:
+    properties:
+      performer:
+        type: string
+      title:
+        type: string
+    type: object
+  responses.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  responses.MusicResponse:
+    properties:
+      artist:
+        type: string
+      id:
+        type: string
+      intro:
+        type: string
+      should_be_muted:
+        type: boolean
+      title:
+        type: string
+    type: object
+  responses.PerformancesResponse:
+    properties:
+      description:
+        type: string
+      ends_at:
+        type: integer
+      id:
+        type: string
+      musics:
+        items:
+          $ref: '#/definitions/responses.MusicResponse'
+        type: array
+      performer:
+        type: string
+      starts_at:
+        type: integer
+      title:
+        type: string
+    type: object
   responses.SuccessResponse:
     properties:
       message:
@@ -11,6 +97,84 @@ info:
   title: Ultradonguri API
   version: "0.1"
 paths:
+  /conversion/cm-mode:
+    post:
+      consumes:
+      - application/json
+      description: endpoint for conversion to cm-mode
+      parameters:
+      - description: post CM request
+        in: body
+        name: CMStateStart
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CMStateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: conversion cm-mode
+      tags:
+      - conversion
+  /conversion/start:
+    post:
+      consumes:
+      - application/json
+      description: endpoint for start conversion
+      parameters:
+      - description: post conversion request
+        in: body
+        name: conversionStart
+        required: true
+        schema:
+          $ref: '#/definitions/requests.ConversionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: conversion start
+      tags:
+      - conversion
+  /force_mute:
+    post:
+      consumes:
+      - application/json
+      description: endpoint for force mute and prevent changes
+      parameters:
+      - description: select mute state
+        in: body
+        name: isMuted
+        required: true
+        schema:
+          $ref: '#/definitions/requests.MuteStateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: force mute
+      tags:
+      - force_mute
   /health:
     get:
       description: endpoint for health check
@@ -24,4 +188,75 @@ paths:
       summary: health check
       tags:
       - health
+  /performance/music:
+    post:
+      consumes:
+      - application/json
+      description: endpoint for start performance music
+      parameters:
+      - description: post performance music
+        in: body
+        name: performanceMusic
+        required: true
+        schema:
+          $ref: '#/definitions/requests.MusicPostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: start performance music
+      tags:
+      - performance
+  /performance/start:
+    post:
+      consumes:
+      - application/json
+      description: endpoint for start performance
+      parameters:
+      - description: post performance request
+        in: body
+        name: performanceStart
+        required: true
+        schema:
+          $ref: '#/definitions/requests.PerformanceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: start performance
+      tags:
+      - performance
+  /performances:
+    get:
+      description: endpoint for get performances data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/responses.PerformancesResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: get performances data
+      tags:
+      - performances
 swagger: "2.0"
