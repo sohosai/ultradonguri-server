@@ -22,7 +22,7 @@ func (h *MuteHandler) PostForceMute(c *gin.Context) {
 
 	newMuteState := muteReq.ToDomainMute() //domainの型に変換
 
-	if err := h.AudioService.SetMute(newMuteState.IsMuted); err != nil {
+	if err := h.AudioService.SetForceMute(newMuteState.IsMuted); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
