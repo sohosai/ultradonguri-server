@@ -93,16 +93,6 @@ func (self *AudioClient) SetMute(state bool) error {
 	return nil
 }
 
-func (self *AudioClient) Mute() error {
-	err := self.SetMute(true)
-	return err
-}
-
-func (self *AudioClient) UnMute() error {
-	err := self.SetMute(false)
-	return err
-}
-
 // /for
 // func (self *AudioClient) GetMute() (entities.MuteState, error) {
 

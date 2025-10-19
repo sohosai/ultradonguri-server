@@ -126,9 +126,9 @@ func (h *Handler) Handle(r *gin.Engine) {
 		}
 
 		if musicEntity.Music.ShouldBeMuted {
-			h.AudioService.Mute()
+			h.AudioService.SetMute(true)
 		} else {
-			h.AudioService.UnMute()
+			h.AudioService.SetMute(false)
 		}
 
 		c.JSON(http.StatusOK, gin.H{"ok": true})
