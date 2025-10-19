@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
 	"github.com/sohosai/ultradonguri-server/internal/domain/repositories"
 	"github.com/sohosai/ultradonguri-server/internal/presentation/model/requests"
 	"github.com/sohosai/ultradonguri-server/internal/presentation/model/responses"
@@ -93,14 +92,14 @@ func (h *Handler) Handle(r *gin.Engine) {
 		h.TelopStore.SetPerformanceTelop(perfEntity)
 		telopMessage := h.TelopStore.GetCurrentTelopMessage()
 		if telopMessage.IsSome() {
-			resp, err := websocket.TypedWebSocketResponse[entities.Performance]{
+			resp, err := websocket.TypedWebSocketResponse[websocket.PerformanceStartData]{
 				Type: websocket.TypePerformanceStart,
-				Data: perfEntity, //ちゃんと、getの関数を書いて、telopClientから読むべきかも
+				Data: websocket.ToDataPerfStart(perfEntity), //ちゃんと、getの関数を書いて、telopClientから読むべきかも
 			}.Encode()
 			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
-			log.Println(resp)
 			h.wsService.PushTelop(resp)
 		}
 
@@ -109,32 +108,40 @@ func (h *Handler) Handle(r *gin.Engine) {
 	})
 
 	r.POST("/performance/music", func(c *gin.Context) {
-		var perf requests.MusicPostRequest
-		if err := c.ShouldBindJSON(&perf); err != nil {
+		var music requests.MusicRequest
+		if err := c.ShouldBindJSON(&music); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		musicEntity := perf.ToDomainMusicPost()
+		musicEntity := music.ToDomainMusicPost()
 
 		//テロップは後で　受け取る型が変わっているため要変更
-		// h.TelopStore.SetPerformanceTelop(perfEntity)
-		// telopMessage := h.TelopStore.GetCurrentTelopMessage()
-		// if telopMessage.IsSome() {
-		// 	h.wsService.PushTelop(telopMessage.Unwrap())
-		// }
+		h.TelopStore.SetMusicTelop(musicEntity)
+		telopMessage := h.TelopStore.GetCurrentTelopMessage()
+		if telopMessage.IsSome() {
+			resp, err := websocket.TypedWebSocketResponse[websocket.PerformanceMusicData]{
+				Type: websocket.TypePerformanceMusic,
+				Data: websocket.ToDataPerfMusic(musicEntity),
+			}.Encode()
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+			h.wsService.PushTelop(resp)
+		}
 
 		//performance中しか/musicを呼べなくするなら、そのステートもいるかも
 		//一旦簡易的にこちらでもisConersionをfalseにしておく
 		h.AudioService.SetIsConversion(false)
-		err := h.AudioService.SetShouldBeMuted(musicEntity.Music.ShouldBeMuted)
+		err := h.AudioService.SetShouldBeMuted(musicEntity.ShouldBeMuted)
 		if err != nil {
 			//後でエラーを細かくする
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		if musicEntity.Music.ShouldBeMuted {
+		if musicEntity.ShouldBeMuted {
 			h.AudioService.SetMute(true)
 		} else {
 			h.AudioService.SetMute(false)
@@ -151,13 +158,21 @@ func (h *Handler) Handle(r *gin.Engine) {
 			return
 		}
 
-		// convEntity := conv.ToDomainConversion()
+		convEntity := conv.ToDomainConversion()
 
-		// h.TelopStore.SetConversionTelop(convEntity)
-		// telopMessage := h.TelopStore.GetCurrentTelopMessage()
-		// if telopMessage.IsSome() {
-		// 	h.wsService.PushTelop(telopMessage.Unwrap())
-		// }
+		h.TelopStore.SetConversionTelop(convEntity)
+		telopMessage := h.TelopStore.GetCurrentTelopMessage()
+		if telopMessage.IsSome() {
+			resp, err := websocket.TypedWebSocketResponse[websocket.ConversionStart]{
+				Type: websocket.TypeConversionStart,
+				Data: websocket.ToDataConvStart(convEntity),
+			}.Encode()
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+			h.wsService.PushTelop(resp)
+		}
 
 		h.AudioService.SetIsConversion(true)
 		c.JSON(http.StatusOK, gin.H{"ok": true})
@@ -178,6 +193,16 @@ func (h *Handler) Handle(r *gin.Engine) {
 		// if telopMessage.IsSome() {
 		// 	h.wsService.PushTelop(telopMessage.Unwrap())
 		// }
+
+		resp, err := websocket.TypedWebSocketResponse[websocket.ConversionCmMode]{
+			Type: websocket.TypeConversionCmMode,
+			Data: websocket.ToDataConvCmMode(convEntity),
+		}.Encode()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		h.wsService.PushTelop(resp)
 
 		if convEntity.IsCMMode {
 			err := h.AudioService.SetCMScene()

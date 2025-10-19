@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"encoding/json"
+	"log"
 	"log/slog"
 	"sync"
 	"time"
@@ -39,17 +40,22 @@ func (h *WebSocketHub) AddConnection(conn *websocket.Conn) {
 func (h *WebSocketHub) RemoveConnection(conn *websocket.Conn) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	delete(h.conns, conn)
-	conn.Close()
+	if _, ok := h.conns[conn]; ok {
+		delete(h.conns, conn)
+		conn.Close()
+	}
 }
 
 // func (h *WebSocketHub) PushTelop(telop entities.TelopMessage) {
 func (h *WebSocketHub) PushTelop(telop WebSocketResponse) {
+	log.Printf("telop")
 	h.telopChannel <- telop
 }
 
 func (h *WebSocketHub) StartTelopWebsocketBroadcastWorker() {
+	log.Printf("rgr")
 	for telop := range h.telopChannel {
+		log.Printf("cannel")
 		h.mu.Lock()
 		conns := make([]*websocket.Conn, 0, len(h.conns))
 		for conn := range h.conns {
