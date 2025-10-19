@@ -38,7 +38,10 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 
 	convEntity := conv.ToDomainConversion()
 
+	// TelopをConversionへ切り替え
 	h.TelopManager.SetConversionTelop(convEntity)
+
+	// viewerへの通知
 	resp, err := websocket.TypedWebSocketResponse[websocket.ConversionStartData]{
 		Type: websocket.TypeConversionStart,
 		Data: websocket.ToDataConvStart(convEntity),
@@ -48,6 +51,12 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 		return
 	}
 	h.wsService.PushTelop(resp)
+
+	// Normalシーンへ切り替え
+	if err := h.SceneManager.SetNormalScene(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 }
