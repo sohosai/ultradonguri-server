@@ -63,7 +63,7 @@ func (h *PerformanceHandler) PostPerformanceStart(c *gin.Context) {
 // @Tags         performance
 // @Accept       json
 // @Produce      json
-// @Param performanceMusic body requests.MusicPostRequest true "post performance music"
+// @Param performanceMusic body requests.MusicRequest true "post performance music"
 // @Success      200  {object}  responses.SuccessResponse
 // @Failure      400  {object}  responses.ErrorResponse
 // @Router       /performance/music [post]
