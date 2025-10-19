@@ -13,7 +13,7 @@ type MuteHandler struct {
 	AudioService repositories.AudioService
 }
 
-func (h *MuteHandler) PostForceMuted(c *gin.Context) {
+func (h *MuteHandler) PostForceMute(c *gin.Context) {
 	var muteReq requests.MuteStateRequest //jsonを受け取るため
 	if err := c.ShouldBindJSON(&muteReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
