@@ -27,6 +27,7 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 	muteHandler := MuteHandler{
 		SceneManager: h.SceneManager,
+		TelopManager: h.TelopManager,
 	}
 
 	performancesHandler := PerformancesHandler{}
