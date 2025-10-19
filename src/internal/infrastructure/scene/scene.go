@@ -29,12 +29,9 @@ func (self *SceneManager) SetMutedScene() error {
 	return err
 }
 
-func (self *SceneManager) SetCMScene(isConversion bool) error {
+func (self *SceneManager) SetCMScene() error {
 	// isConversionの管理はSceneManagerの責任ではないので外から受け取る
-	if !isConversion {
-		// Conversion中でないのならばCMシーンには移行しない
-		return fmt.Errorf("cannot change force_mute state: it's not conversion now")
-	} else if self.isForceMutedFlag {
+	if self.isForceMutedFlag {
 		// force_mute中もCMシーンには移行しない
 		return fmt.Errorf("Failed to switch scene to CM: force_muted")
 	}
