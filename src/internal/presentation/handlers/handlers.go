@@ -142,13 +142,13 @@ func (h *Handler) Handle(r *gin.Engine) {
 			return
 		}
 
-		convEntity := conv.ToDomainConversion()
+		// convEntity := conv.ToDomainConversion()
 
-		h.TelopStore.SetConversionTelop(convEntity)
-		telopMessage := h.TelopStore.GetCurrentTelopMessage()
-		if telopMessage.IsSome() {
-			h.wsService.PushTelop(telopMessage.Unwrap())
-		}
+		// h.TelopStore.SetConversionTelop(convEntity)
+		// telopMessage := h.TelopStore.GetCurrentTelopMessage()
+		// if telopMessage.IsSome() {
+		// 	h.wsService.PushTelop(telopMessage.Unwrap())
+		// }
 
 		h.AudioService.SetIsConversion(true)
 		c.JSON(http.StatusOK, gin.H{"ok": true})

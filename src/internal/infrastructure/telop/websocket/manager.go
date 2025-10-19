@@ -7,20 +7,26 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
 )
 
 // websocket の通信の集合
 type WebSocketHub struct {
-	mu           sync.Mutex
-	conns        map[*websocket.Conn]bool
-	telopChannel chan entities.TelopMessage
+	mu    sync.Mutex
+	conns map[*websocket.Conn]bool
+	// telopChannel chan entities.TelopMessage
+	telopChannel chan WebSocketResponse
+}
+
+type WebSocketResponse struct {
+	Type string          `json:"type"`
+	Data json.RawMessage `json:"data"`
 }
 
 func NewWebSocketHub(bufferSize int) *WebSocketHub {
 	return &WebSocketHub{
-		conns:        make(map[*websocket.Conn]bool),
-		telopChannel: make(chan entities.TelopMessage, bufferSize),
+		conns: make(map[*websocket.Conn]bool),
+		// telopChannel: make(chan entities.TelopMessage, bufferSize),
+		telopChannel: make(chan WebSocketResponse, bufferSize),
 	}
 }
 
@@ -37,7 +43,8 @@ func (h *WebSocketHub) RemoveConnection(conn *websocket.Conn) {
 	conn.Close()
 }
 
-func (h *WebSocketHub) PushTelop(telop entities.TelopMessage) {
+// func (h *WebSocketHub) PushTelop(telop entities.TelopMessage) {
+func (h *WebSocketHub) PushTelop(telop WebSocketResponse) {
 	h.telopChannel <- telop
 }
 

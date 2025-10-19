@@ -13,6 +13,7 @@ func (self *AudioClient) SetNormalScene() error {
 	if err != nil {
 		return err
 	}
+	//CMから出れない！？！？消しましょう
 	if current_scene == self.scenes.CM {
 		return fmt.Errorf("cannot change scene: it's CM scene")
 	}
