@@ -1,0 +1,27 @@
+basePath: /
+definitions:
+  responses.SuccessResponse:
+    properties:
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Sohosai 2025 project telop sending API
+  title: Ultradonguri API
+  version: "0.1"
+paths:
+  /health:
+    get:
+      description: endpoint for health check
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse'
+      summary: health check
+      tags:
+      - health
+swagger: "2.0"
