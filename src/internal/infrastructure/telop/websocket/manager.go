@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"encoding/json"
-	"log"
 	"log/slog"
 	"sync"
 	"time"
@@ -12,12 +11,12 @@ import (
 
 // websocket の通信の集合
 type WebSocketHub struct {
-	mu    sync.Mutex
-	conns map[*websocket.Conn]bool
-	// telopChannel chan entities.TelopMessage
+	mu           sync.Mutex
+	conns        map[*websocket.Conn]bool
 	telopChannel chan WebSocketResponse
 }
 
+// テロップとして送信するjsonの形が四種類になったので自由度を高めた。
 type WebSocketResponse struct {
 	Type string          `json:"type"`
 	Data json.RawMessage `json:"data"`
@@ -25,8 +24,7 @@ type WebSocketResponse struct {
 
 func NewWebSocketHub(bufferSize int) *WebSocketHub {
 	return &WebSocketHub{
-		conns: make(map[*websocket.Conn]bool),
-		// telopChannel: make(chan entities.TelopMessage, bufferSize),
+		conns:        make(map[*websocket.Conn]bool),
 		telopChannel: make(chan WebSocketResponse, bufferSize),
 	}
 }
@@ -46,16 +44,12 @@ func (h *WebSocketHub) RemoveConnection(conn *websocket.Conn) {
 	}
 }
 
-// func (h *WebSocketHub) PushTelop(telop entities.TelopMessage) {
 func (h *WebSocketHub) PushTelop(telop WebSocketResponse) {
-	log.Printf("telop")
 	h.telopChannel <- telop
 }
 
 func (h *WebSocketHub) StartTelopWebsocketBroadcastWorker() {
-	log.Printf("rgr")
 	for telop := range h.telopChannel {
-		log.Printf("cannel")
 		h.mu.Lock()
 		conns := make([]*websocket.Conn, 0, len(h.conns))
 		for conn := range h.conns {

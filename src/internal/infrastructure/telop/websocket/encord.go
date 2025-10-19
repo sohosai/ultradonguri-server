@@ -12,8 +12,7 @@ type TypedWebSocketResponse[T any] struct {
 	Data T
 }
 
-// telop送信用の型に変換
-// 型が矛盾していないか
+// 型が矛盾していないかをチェックしてtelop送信用のWebSocketResponseに変換
 func (t TypedWebSocketResponse[T]) Encode() (WebSocketResponse, error) {
 	rt := reflect.TypeOf(t.Data)
 	log.Printf("%v", rt)

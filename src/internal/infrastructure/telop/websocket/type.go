@@ -41,7 +41,6 @@ const (
 // dataに乗せる型とエンドポイントが正しいかの判断用
 var typeRegistry = map[reflect.Type]string{
 	reflect.TypeOf(PerformanceStartData{}): TypePerformanceStart,
-	// reflect.TypeOf(entities.Performance{}): TypePerformanceStart,
 	reflect.TypeOf(PerformanceMusicData{}): TypePerformanceMusic,
 	reflect.TypeOf(ConversionStart{}):      TypeConversionStart,
 	reflect.TypeOf(ConversionCmMode{}):     TypeConversionCmMode,
