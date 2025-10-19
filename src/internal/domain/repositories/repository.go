@@ -7,7 +7,6 @@ import (
 
 type AudioService interface {
 	SetMute(bool) error
-	// GetMute() (entities.MuteState, error)
 	SetForceMute(bool) error
 	SetShouldBeMuted(bool) error
 	SetIsConversion(bool) error
@@ -18,7 +17,8 @@ type AudioService interface {
 }
 
 type TelopStore interface {
-	SetPerformanceTelop(entities.PerformancePost)
+	SetPerformanceTelop(entities.Performance)
+	SetMusicTelop(entities.Music)
 	SetConversionTelop(entities.ConversionPost)
 	GetCurrentTelopMessage() utils.Option[entities.TelopMessage]
 }

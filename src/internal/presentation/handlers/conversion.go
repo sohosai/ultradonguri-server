@@ -41,7 +41,15 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 	h.TelopStore.SetConversionTelop(convEntity)
 	telopMessage := h.TelopStore.GetCurrentTelopMessage()
 	if telopMessage.IsSome() {
-		h.wsService.PushTelop(telopMessage.Unwrap())
+		resp, err := websocket.TypedWebSocketResponse[websocket.ConversionStartData]{
+			Type: websocket.TypeConversionStart,
+			Data: websocket.ToDataConvStart(convEntity),
+		}.Encode()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		h.wsService.PushTelop(resp)
 	}
 
 	h.AudioService.SetIsConversion(true)
@@ -69,12 +77,15 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 
 	convEntity := conv.ToDomainCMState()
 
-	//ここでのテロップはいらないかも
-	// h.TelopStore.SetConversionTelop(convEntity)
-	// telopMessage := h.TelopStore.GetCurrentTelopMessage()
-	// if telopMessage.IsSome() {
-	// 	h.wsService.PushTelop(telopMessage.Unwrap())
-	// }
+	resp, err := websocket.TypedWebSocketResponse[websocket.ConversionCmModeData]{
+		Type: websocket.TypeConversionCmMode,
+		Data: websocket.ToDataConvCmMode(convEntity),
+	}.Encode()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	h.wsService.PushTelop(resp)
 
 	if convEntity.IsCMMode {
 		err := h.AudioService.SetCMScene()
