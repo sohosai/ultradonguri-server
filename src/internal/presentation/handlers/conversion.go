@@ -73,33 +73,47 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 
 	convEntity := conv.ToDomainCMState()
 
-	resp, err := websocket.TypedWebSocketResponse[websocket.ConversionCmModeData]{
-		Type: websocket.TypeConversionCmMode,
-		Data: websocket.ToDataConvCmMode(convEntity),
-	}.Encode()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if h.TelopManager.IsConversion() {
+		// 転換パートでのみViewerへの通知とシーンの切り替えを行う
+
+		// Viewerへの通知
+		resp, err := websocket.TypedWebSocketResponse[websocket.ConversionCmModeData]{
+			Type: websocket.TypeConversionCmMode,
+			Data: websocket.ToDataConvCmMode(convEntity),
+		}.Encode()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		h.wsService.PushTelop(resp)
+
+		// シーンの切り替え
+		if convEntity.IsCMMode {
+			// CMシーンへの切り替えを指定された場合
+			err := h.SceneManager.SetCMScene()
+			if err != nil {
+				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+					Kind: entities.InvalidFormat})
+				c.JSON(status, errRes)
+				return
+			} else {
+				err := h.SceneManager.SetMute(false)
+				if err != nil {
+					errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+						Kind: entities.InvalidFormat})
+					c.JSON(status, errRes)
+					return
+				}
+			}
+		}
+
+		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 		return
 	}
-	h.wsService.PushTelop(resp)
 
-	if convEntity.IsCMMode {
-		err := h.SceneManager.SetCMScene()
-		if err != nil {
-			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-				Kind: entities.InvalidFormat})
-			c.JSON(status, errRes)
-			return
-		}
-	} else {
-		err := h.SceneManager.SetMute(false)
-		if err != nil {
-			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-				Kind: entities.InvalidFormat})
-			c.JSON(status, errRes)
-			return
-		}
-	}
-
-	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+	// 転換パートでない場合はエラー
+	// エラー処理は仮
+	errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: "転換パートじゃないですよ的なエラーを発生させたい",
+		Kind: entities.InvalidFormat})
+	c.JSON(status, errRes)
 }
