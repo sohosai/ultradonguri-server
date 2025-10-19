@@ -7,6 +7,7 @@ import (
 	"reflect"
 )
 
+// ジェネリクスの型でpresentation層から受け取り、エンコードする。
 type TypedWebSocketResponse[T any] struct {
 	Type string
 	Data T

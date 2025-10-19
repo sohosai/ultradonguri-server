@@ -27,7 +27,7 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 	h.TelopStore.SetConversionTelop(convEntity)
 	telopMessage := h.TelopStore.GetCurrentTelopMessage()
 	if telopMessage.IsSome() {
-		resp, err := websocket.TypedWebSocketResponse[websocket.ConversionStart]{
+		resp, err := websocket.TypedWebSocketResponse[websocket.ConversionStartData]{
 			Type: websocket.TypeConversionStart,
 			Data: websocket.ToDataConvStart(convEntity),
 		}.Encode()
@@ -51,7 +51,7 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 
 	convEntity := conv.ToDomainCMState()
 
-	resp, err := websocket.TypedWebSocketResponse[websocket.ConversionCmMode]{
+	resp, err := websocket.TypedWebSocketResponse[websocket.ConversionCmModeData]{
 		Type: websocket.TypeConversionCmMode,
 		Data: websocket.ToDataConvCmMode(convEntity),
 	}.Encode()
