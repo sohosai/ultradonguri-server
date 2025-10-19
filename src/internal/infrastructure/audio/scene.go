@@ -7,14 +7,30 @@ import (
 )
 
 func (self *AudioClient) SetNormalScene() error {
-	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
+	//CMシーン中のシーン切り替えを許さない（CM解除以外の）
+	//仕様にどうすべきか明記されていなかったため、変更の可能性あり
+	current_scene, err := self.GetCurrentScene()
+	if err != nil {
+		return err
+	}
+	if current_scene == self.scenes.CM {
+		return fmt.Errorf("cannot change scene: it's CM scene")
+	}
+	_, err = self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
 		SceneUuid: &self.scenes.Normal,
 	})
 	return err
 }
 
 func (self *AudioClient) SetMutedScene() error {
-	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
+	current_scene, err := self.GetCurrentScene()
+	if err != nil {
+		return err
+	}
+	if current_scene == self.scenes.CM {
+		return fmt.Errorf("cannot change scene: it's CM scene")
+	}
+	_, err = self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
 		SceneUuid: &self.scenes.Muted,
 	})
 	return err
@@ -23,7 +39,11 @@ func (self *AudioClient) SetMutedScene() error {
 func (self *AudioClient) SetCMScene() error {
 	if !self.isConversion {
 		return fmt.Errorf("cannot change force_mute state: it's not conversion now")
+	} else if self.isForceMuted {
+		//force_mute中もCMにできない
+		return fmt.Errorf("cannot change force_mute state: force_muted")
 	}
+
 	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
 		SceneUuid: &self.scenes.CM,
 	})

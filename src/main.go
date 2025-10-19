@@ -17,12 +17,6 @@ import (
 func main() {
 	ADDR := os.Getenv("ADDRESS")
 	PASS := os.Getenv("PASSWORD")
-	// DEV_SCENE := os.Getenv("DEV_SCENE_NAME")
-	// AUDIO_INPUT := os.Getenv("AUDIO_INPUT_NAME")
-	// NORMAL_SCENE_NAME := os.Getenv("Normal_Scene")
-	// MUTED_SCENE_NAME := os.Getenv("Muted_Scene")
-	// CM_SCENE_NAME := os.Getenv("CM_Scene")
-
 	scenes := audio.Scenes{
 		Normal: os.Getenv("NORMAL_SCENE_NAME"),
 		Muted:  os.Getenv("MUTED_SCENE_NAME"),
@@ -30,8 +24,6 @@ func main() {
 	}
 
 	// fmt.Printf("ADDR: %s\n", ADDR)
-	// fmt.Printf("PASS: %s\n", DEV_SCENE)
-	// fmt.Printf("AUDIO_INPUT: %s\n", AUDIO_INPUT)
 
 	obsClient, err := goobs.New(ADDR, goobs.WithPassword(PASS))
 	if err != nil {

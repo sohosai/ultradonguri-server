@@ -9,7 +9,7 @@ type AudioService interface {
 	Mute() error
 	UnMute() error
 	SetMute(bool) error
-	GetMute() (entities.MuteState, error)
+	// GetMute() (entities.MuteState, error)
 	SetForceMute(bool) error
 	SetShouldBeMuted(bool) error
 	SetIsConversion(bool) error

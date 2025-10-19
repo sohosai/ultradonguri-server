@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/andreykaipov/goobs"
-	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
 	"github.com/sohosai/ultradonguri-server/internal/utils"
 )
 
@@ -104,17 +103,19 @@ func (self *AudioClient) UnMute() error {
 	return err
 }
 
-func (self *AudioClient) GetMute() (entities.MuteState, error) {
+// /for
+// func (self *AudioClient) GetMute() (entities.MuteState, error) {
 
-	// sceneName, sceneUUID, err := GetCurrentScene(self.obsClient)
-	sceneUUID, err := self.GetCurrentScene()
+// 	// sceneName, sceneUUID, err := GetCurrentScene(self.obsClient)
+// 	sceneUUID, err := self.GetCurrentScene()
 
-	if err != nil {
-		return entities.MuteState{}, err
-	}
+// 	if err != nil {
+// 		return entities.MuteState{}, err
+// 	}
 
-	return entities.MuteState{IsMuted: sceneUUID == self.scenes.Muted}, nil
-}
+// 	// CMシーンでもfalse
+// 	return entities.MuteState{IsMuted: sceneUUID == self.scenes.Muted}, nil
+// }
 
 func (self *AudioClient) SetForceMute(state bool) error {
 	currentSceneUuid, err := self.GetCurrentScene()
@@ -146,13 +147,6 @@ func (self *AudioClient) SetForceMute(state bool) error {
 		}
 		self.isForceMuted = state
 	}
-
-	//isForceMutedを先に書き換えると変更不可になってしまうため先にシーン変更
-	err = self.SetMute(state)
-	if err != nil {
-		return err
-	}
-	self.isForceMuted = state
 
 	return nil
 }
