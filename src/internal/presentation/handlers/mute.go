@@ -12,7 +12,8 @@ import (
 )
 
 type MuteHandler struct {
-	AudioService repositories.AudioService
+	SceneManager repositories.SceneManager
+	TelopManager repositories.TelopManager
 }
 
 // PostForceMute godoc
@@ -36,7 +37,7 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 
 	newMuteState := muteReq.ToDomainMute() //domainの型に変換
 
-	if err := h.AudioService.SetForceMute(newMuteState.IsMuted); err != nil {
+	if err := h.SceneManager.SetForceMute(newMuteState.IsMuted); err != nil {
 		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 			Kind: entities.CannotForceMute})
 		c.JSON(status, errRes)

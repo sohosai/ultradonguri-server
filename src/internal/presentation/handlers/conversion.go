@@ -13,7 +13,7 @@ import (
 
 type ConversionHandlers struct {
 	TelopManager repositories.TelopManager
-	AudioService repositories.AudioService
+	SceneManager repositories.SceneManager
 	wsService    *websocket.WebSocketHub
 }
 
@@ -52,7 +52,6 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 		h.wsService.PushTelop(resp)
 	}
 
-	h.AudioService.SetIsConversion(true)
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 }
 
@@ -88,7 +87,7 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 	h.wsService.PushTelop(resp)
 
 	if convEntity.IsCMMode {
-		err := h.AudioService.SetCMScene()
+		err := h.SceneManager.SetCMScene()
 		if err != nil {
 			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 				Kind: entities.InvalidFormat})
@@ -96,7 +95,7 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 			return
 		}
 	} else {
-		err := h.AudioService.SetMute(false)
+		err := h.SceneManager.SetMute(false)
 		if err != nil {
 			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 				Kind: entities.InvalidFormat})

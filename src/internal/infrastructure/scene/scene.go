@@ -1,4 +1,4 @@
-package audio
+package scene
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"github.com/andreykaipov/goobs/api/requests/scenes"
 )
 
-func (self *AudioClient) SetNormalScene() error {
+func (self *SceneManager) SetNormalScene() error {
 	//CMシーン中のシーン切り替えを許さない（CM解除以外の）
 	//仕様にどうすべきか明記されていなかったため、変更の可能性あり
 	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
@@ -15,18 +15,20 @@ func (self *AudioClient) SetNormalScene() error {
 	return err
 }
 
-func (self *AudioClient) SetMutedScene() error {
+func (self *SceneManager) SetMutedScene() error {
 	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
 		SceneUuid: &self.scenes.Muted,
 	})
 	return err
 }
 
-func (self *AudioClient) SetCMScene() error {
-	if !self.isConversion {
+func (self *SceneManager) SetCMScene(isConversion bool) error {
+	// isConversionの管理はSceneManagerの責任ではないので外から受け取る
+	if !isConversion {
+		// Conversion中でないのならばCMシーンには移行しない
 		return fmt.Errorf("cannot change force_mute state: it's not conversion now")
-	} else if self.isForceMuted {
-		//force_mute中もCMにできない
+	} else if self.isForceMutedFlag {
+		// force_mute中もCMシーンには移行しない
 		return fmt.Errorf("cannot change force_mute state: force_muted")
 	}
 
@@ -36,13 +38,10 @@ func (self *AudioClient) SetCMScene() error {
 	return err
 }
 
-// SceneNameが必要なら返り値に含めてもよい
-// func (self *AudioClient) GetCurrentScene() (sceneName string, sceneUUID string, err error) {
-func (self *AudioClient) GetCurrentScene() (sceneUUID string, err error) {
+func (self *SceneManager) GetCurrentScene() (sceneUUID string, err error) {
 	resp, err := self.obsClient.Scenes.GetCurrentProgramScene(&scenes.GetCurrentProgramSceneParams{})
 	if err != nil {
 		return "", err
 	}
-	// return resp.CurrentProgramSceneName, resp.CurrentProgramSceneUuid, nil
 	return resp.CurrentProgramSceneUuid, nil
 }

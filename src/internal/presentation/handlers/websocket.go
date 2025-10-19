@@ -11,7 +11,7 @@ import (
 
 type WebsocketHandlers struct {
 	TelopManager repositories.TelopManager
-	AudioService repositories.AudioService
+	SceneManager repositories.SceneManager
 	wsService    *websocket.WebSocketHub
 }
 

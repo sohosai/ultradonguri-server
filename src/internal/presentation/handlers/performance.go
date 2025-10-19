@@ -13,7 +13,7 @@ import (
 )
 
 type PerformanceHandler struct {
-	AudioService repositories.AudioService
+	SceneManager repositories.SceneManager
 	TelopManager repositories.TelopManager
 	wsService    *websocket.WebSocketHub
 }
@@ -53,7 +53,6 @@ func (h *PerformanceHandler) PostPerformanceStart(c *gin.Context) {
 		h.wsService.PushTelop(resp)
 	}
 
-	h.AudioService.SetIsConversion(false)
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 }
 
@@ -92,20 +91,13 @@ func (h *PerformanceHandler) PostPerformanceMusic(c *gin.Context) {
 
 	//performance中しか/musicを呼べなくするなら、そのステートもいるかも
 	//一旦簡易的にこちらでもisConersionをfalseにしておく
-	h.AudioService.SetIsConversion(false)
-	err := h.AudioService.SetShouldBeMuted(musicEntity.ShouldBeMuted)
+	err := h.SceneManager.SetMute(musicEntity.ShouldBeMuted)
 	if err != nil {
 		//後でエラーを細かくする
 		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 			Kind: entities.InvalidFormat})
 		c.JSON(status, errRes)
 		return
-	}
-
-	if musicEntity.ShouldBeMuted {
-		h.AudioService.SetMute(true)
-	} else {
-		h.AudioService.SetMute(false)
 	}
 
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})

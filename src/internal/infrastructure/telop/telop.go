@@ -71,6 +71,32 @@ func (self *TelopManager) GetCurrentTelopMessage() utils.Option[entities.TelopMe
 		})
 }
 
+func (self *TelopManager) IsConversion() bool {
+	return match(self.telop,
+		func(_ entities.PerformancePost) bool {
+			return false
+		},
+		func(_ entities.ConversionPost) bool {
+			return true
+		},
+		func(_ entities.EmptyTelop) bool {
+			return false
+		})
+}
+
+func (self *TelopManager) ShouldBeMuted() bool {
+	return match(self.telop,
+		func(performance entities.PerformancePost) bool {
+			return performance.Music.ShouldBeMuted
+		},
+		func(_ entities.ConversionPost) bool {
+			return false
+		},
+		func(_ entities.EmptyTelop) bool {
+			return false
+		})
+}
+
 func match[T any](telop Telop,
 	onPerformance func(entities.PerformancePost) T,
 	onConversion func(entities.ConversionPost) T,
