@@ -9,9 +9,16 @@ import (
 func (self *SceneManager) SetNormalScene() error {
 	//CMシーン中のシーン切り替えを許さない（CM解除以外の）
 	//仕様にどうすべきか明記されていなかったため、変更の可能性あり
+
+	if self.isForceMutedFlag {
+		// force_mute中はNormalシーンに移行しない
+		return fmt.Errorf("Failed to switch scene to Normal: force_muted")
+	}
+
 	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
 		SceneUuid: &self.scenes.Normal,
 	})
+
 	return err
 }
 
@@ -29,7 +36,7 @@ func (self *SceneManager) SetCMScene(isConversion bool) error {
 		return fmt.Errorf("cannot change force_mute state: it's not conversion now")
 	} else if self.isForceMutedFlag {
 		// force_mute中もCMシーンには移行しない
-		return fmt.Errorf("cannot change force_mute state: force_muted")
+		return fmt.Errorf("Failed to switch scene to CM: force_muted")
 	}
 
 	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
