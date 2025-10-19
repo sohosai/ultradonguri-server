@@ -105,16 +105,16 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 					Kind: entities.InvalidFormat})
 				c.JSON(status, errRes)
 				return
-			} else {
-				err := h.SceneManager.SetMute(false)
-				if err != nil {
-					errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-						Kind: entities.InvalidFormat})
-					c.JSON(status, errRes)
-					return
-				}
 			}
-		}
+		} // else {
+		// 	err := h.SceneManager.SetMute(false)
+		// 	if err != nil {
+		// 		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+		// 			Kind: entities.InvalidFormat})
+		// 		c.JSON(status, errRes)
+		// 		return
+		// 	}
+		// }
 
 		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 		return
