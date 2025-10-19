@@ -39,6 +39,7 @@ func (h *PerformanceHandler) PostPerformanceStart(c *gin.Context) {
 
 	perfEntity := perf.ToDomainPerformance()
 
+	// Telopを設定する
 	h.TelopManager.SetPerformanceTelop(perfEntity)
 
 	// Viewerへ通知
@@ -51,6 +52,15 @@ func (h *PerformanceHandler) PostPerformanceStart(c *gin.Context) {
 		return
 	}
 	h.wsService.PushTelop(resp)
+
+	// SceneをNormalに設定する
+	if err := h.SceneManager.SetNormalScene(); err != nil {
+		// エラーは仮
+		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+			Kind: entities.InvalidFormat})
+		c.JSON(status, errRes)
+		return
+	}
 
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 }

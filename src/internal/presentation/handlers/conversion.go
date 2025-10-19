@@ -54,7 +54,10 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 
 	// Normalシーンへ切り替え
 	if err := h.SceneManager.SetNormalScene(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		// エラーは仮
+		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+			Kind: entities.InvalidFormat})
+		c.JSON(status, errRes)
 		return
 	}
 
@@ -101,6 +104,7 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 			// CMシーンへの切り替えを指定された場合
 			err := h.SceneManager.SetCMScene()
 			if err != nil {
+				// エラーは仮
 				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 					Kind: entities.InvalidFormat})
 				c.JSON(status, errRes)
