@@ -1,7 +1,6 @@
 package telop
 
 import (
-	"encoding/json"
 	"log"
 
 	"github.com/samber/mo"
@@ -25,29 +24,40 @@ func NewTelopManager() *TelopManager {
 }
 
 func (self *TelopManager) SetPerformanceTelop(performance entities.Performance) {
-	self.telop = mo.NewEither3Arg1[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](entities.PerformancePost{
-		Performance: performance,
-	})
+	performancePost := entities.PerformancePost{Performance: performance}
 
-	telopJson, _ := json.Marshal(performance)
-	log.Printf("Telop changed: %s", string(telopJson))
+	self.telop = mo.NewEither3Arg1[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](performancePost)
+
+	log.Printf("Telop changed: %v", performancePost)
 }
 
 func (self *TelopManager) SetMusicTelop(music entities.Music) {
-	self.telop = mo.NewEither3Arg1[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](entities.PerformancePost{
-		Music: music,
+	var performancePost entities.PerformancePost
+
+	self.telop = match(self.telop, func(prevPerformance entities.PerformancePost) Telop {
+		prevPerformance.Music = music
+		performancePost = prevPerformance
+
+		return mo.NewEither3Arg1[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](performancePost)
+	}, func(_ entities.ConversionPost) Telop {
+		performancePost = entities.PerformancePost{Music: music}
+
+		return mo.NewEither3Arg1[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](performancePost)
+	}, func(_ entities.EmptyTelop) Telop {
+		performancePost = entities.PerformancePost{Music: music}
+
+		return mo.NewEither3Arg1[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](performancePost)
 	})
 
-	telopJson, _ := json.Marshal(music)
-	log.Printf("Telop changed: %s", string(telopJson))
+	self.telop = mo.NewEither3Arg1[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](performancePost)
 
+	log.Printf("Telop changed: %v", performancePost)
 }
 
 func (self *TelopManager) SetConversionTelop(conversion entities.ConversionPost) {
 	self.telop = mo.NewEither3Arg2[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](conversion)
 
-	telopJson, _ := json.Marshal(conversion)
-	log.Printf("Telop changed: %s", string(telopJson))
+	log.Printf("Telop changed: %v", conversion)
 }
 
 func (self *TelopManager) GetCurrentTelopMessage() utils.Option[entities.TelopMessage] {
