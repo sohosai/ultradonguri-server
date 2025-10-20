@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/andreykaipov/goobs"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	_ "github.com/sohosai/ultradonguri-server/docs"
@@ -29,6 +31,8 @@ func main() {
 		Muted:  os.Getenv("MUTED_SCENE_NAME"),
 		CM:     os.Getenv("CM_SCENE_NAME"),
 	}
+	CONTROLLER_ORIGINS := os.Getenv("CONTROLLER_ADDRESS")
+	allowOrigins := strings.Split(CONTROLLER_ORIGINS, ",")
 
 	// fmt.Printf("ADDR: %s\n", ADDR)
 
@@ -51,6 +55,21 @@ func main() {
 	h := handlers.NewHandler(audioClient, telopStore, wsHub)
 
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOriginFunc: func(origin string) bool {
+			for _, prefix := range allowOrigins {
+				prefix = strings.TrimSpace(prefix)
+				if strings.HasPrefix(origin, prefix) {
+					return true
+				}
+			}
+			return false
+		},
+		AllowMethods:     []string{"GET", "POST", "OPTIONS", "DELETE"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
+
 	h.Handle(r)
 
 	swagger := r.Group("/swagger")
