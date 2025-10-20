@@ -100,8 +100,9 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 		h.wsService.PushTelop(resp)
 
 		// シーンの切り替え
-		if convEntity.IsCMMode {
-			// CMシーンへの切り替えを指定された場合
+		if convEntity.IsCMMode { // CMシーンへの切り替えを指定された場合
+			// テロップは現在のものを維持する。すわなち変更しない。変更するとCMシーンから戻るときに戻り先のテロップがわからなくなる
+			// シーンをCMに切り替える
 			err := h.SceneManager.SetCMScene()
 			if err != nil {
 				// エラーは仮
@@ -110,15 +111,16 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 				c.JSON(status, errRes)
 				return
 			}
-		} // else {
-		// 	err := h.SceneManager.SetMute(false)
-		// 	if err != nil {
-		// 		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-		// 			Kind: entities.InvalidFormat})
-		// 		c.JSON(status, errRes)
-		// 		return
-		// 	}
-		// }
+		} else { // CMシーンからNormalへ戻る場合
+			// CMシーンに切り替わるのはConversion中だけで、
+			// 切り替えの際にTelopの情報は消されずに維持されるのでシーンだけNormalに戻せば良い
+			if err := h.SceneManager.SetNormalScene(); err != nil {
+				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+					Kind: entities.InvalidFormat})
+				c.JSON(status, errRes)
+				return
+			}
+		}
 
 		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 		return
