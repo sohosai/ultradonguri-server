@@ -43,6 +43,10 @@ func (h *Handler) Handle(r *gin.Engine) {
 		wsService:    h.wsService,
 	}
 
+	copyrightHandler := CopyRightHandler{
+		wsService: h.wsService,
+	}
+
 	websocketHandlers := WebsocketHandlers{
 		AudioService: h.AudioService,
 		TelopStore:   h.TelopStore,
@@ -65,6 +69,8 @@ func (h *Handler) Handle(r *gin.Engine) {
 		conversionRoutes.POST("/start", conversionHandlers.PostConversionStart)
 		conversionRoutes.POST("/cm-mode", conversionHandlers.PostConversionCMMode)
 	}
+
+	r.POST("/deslpay-copyright", copyrightHandler.PostDesplayCopyRight)
 
 	r.GET("/ws", websocketHandlers.GetWebsocketConnection)
 }
