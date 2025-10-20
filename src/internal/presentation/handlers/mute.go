@@ -45,6 +45,7 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 		// SceneをMuteに切り替える
 		// ロジックはSceneManagerへ任せる
 		if err := h.SceneManager.SetMute(true); err != nil {
+			// エラーは仮
 			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 				Kind: entities.CannotForceMute})
 			c.JSON(status, errRes)
@@ -60,10 +61,20 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 	// forceMuteFlagを無効化する
 	h.SceneManager.SetForceMuteFlag(false)
 
-	if h.TelopManager.IsConversion() || !h.TelopManager.ShouldBeMuted() {
+	isCm, err := h.SceneManager.IsCm()
+	if err != nil {
+		// エラーは仮
+		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+			Kind: entities.CannotForceMute})
+		c.JSON(status, errRes)
+		return
+	}
+
+	if (h.TelopManager.IsConversion() || !h.TelopManager.ShouldBeMuted()) && !isCm {
 		// 現在のTelopがConversion
 		// または
 		// 現在のTelopがPerformanceでMusicがshould_be_muted=falseの場合
+		// かつCMモードじゃない場合
 
 		// SceneをNormalへ移行する
 		h.SceneManager.SetNormalScene()

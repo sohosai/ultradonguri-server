@@ -72,7 +72,7 @@ func NewSceneManager(obsClient *goobs.Client, sceneNames SceneNames) (*SceneMana
 
 // force_mute時のmute切り替えもこのメソッドが行う。
 func (self *SceneManager) SetMute(state bool) error {
-	isCm, err := self.isCm()
+	isCm, err := self.IsCm()
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func (self *SceneManager) SetForceMuteFlag(state bool) {
 	self.isForceMutedFlag = state
 }
 
-func (self *SceneManager) isCm() (bool, error) {
+func (self *SceneManager) IsCm() (bool, error) {
 	currentScene, err := self.GetCurrentScene()
 	if err != nil {
 		return false, err

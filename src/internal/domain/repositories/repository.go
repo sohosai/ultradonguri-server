@@ -11,6 +11,7 @@ type SceneManager interface {
 	SetCMScene() error
 	GetCurrentScene() (string, error)
 	SetForceMuteFlag(bool)
+	IsCm() (bool, error)
 }
 
 type TelopManager interface {
