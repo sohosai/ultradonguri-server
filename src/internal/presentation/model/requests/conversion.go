@@ -7,9 +7,10 @@ type ConversionRequest struct {
 }
 
 type NextPerformanceRequest struct {
-	Title       string `json:"title"`
-	Performer   string `json:"performer"`
-	Description string `json:"description"`
+	Title       string      `json:"title"`
+	Performer   string      `json:"performer"`
+	Description string      `json:"description"`
+	StartsAt    entities.HM `json:"starts_at"`
 }
 
 type CMStateRequest struct {
@@ -23,6 +24,7 @@ func (conv ConversionRequest) ToDomainConversion() entities.ConversionPost {
 			Title:       e.Title,
 			Performer:   e.Performer,
 			Description: e.Description,
+			StartsAt:    e.StartsAt,
 		})
 	}
 	return entities.ConversionPost{
