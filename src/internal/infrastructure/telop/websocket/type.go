@@ -32,8 +32,8 @@ type NextPerformanceData struct {
 	Description string `json:"description"`
 }
 
-type DesplayCopyrightData struct {
-	IsDesplay bool `json:"is_desplayed_copyright"`
+type DisplayCopyrightData struct {
+	IsDisplay bool `json:"is_displayed_copyright"`
 }
 
 type WsMessageType string
@@ -43,7 +43,7 @@ const (
 	TypePerformanceMusic WsMessageType = "/performance/music"
 	TypeConversionStart  WsMessageType = "/conversion/start"
 	TypeConversionCmMode WsMessageType = "/conversion/cm-mode"
-	TypeDesplayCopyright WsMessageType = "/desplay-copyright"
+	TypeDisplayCopyright WsMessageType = "/display-copyright"
 )
 
 // wsで送信するdataに乗せる型とエンドポイントが正しいかの判断用のマップ
@@ -52,7 +52,7 @@ var typeRegistry = map[reflect.Type]WsMessageType{
 	reflect.TypeOf(PerformanceMusicData{}): TypePerformanceMusic,
 	reflect.TypeOf(ConversionStartData{}):  TypeConversionStart,
 	reflect.TypeOf(ConversionCmModeData{}): TypeConversionCmMode,
-	reflect.TypeOf(DesplayCopyrightData{}): TypeDesplayCopyright,
+	reflect.TypeOf(DisplayCopyrightData{}): TypeDisplayCopyright,
 }
 
 // ドメイン層の型にjsonのフィールドをつけたws送信用の型に変換する関数
@@ -92,8 +92,8 @@ func ToDataConvCmMode(c entities.CMState) ConversionCmModeData {
 	}
 }
 
-func ToDataDesplayCopyright(d entities.DesplayCopyright) DesplayCopyrightData {
-	return DesplayCopyrightData{
-		IsDesplay: d.IsDesplay,
+func ToDataDisplayCopyright(d entities.DisplayCopyright) DisplayCopyrightData {
+	return DisplayCopyrightData{
+		IsDisplay: d.IsDisplay,
 	}
 }

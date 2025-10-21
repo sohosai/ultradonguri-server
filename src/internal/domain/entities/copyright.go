@@ -1,5 +1,5 @@
 package entities
 
-type DesplayCopyright struct {
-	IsDesplay bool
+type DisplayCopyright struct {
+	IsDisplay bool
 }

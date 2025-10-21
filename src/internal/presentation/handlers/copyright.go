@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,20 +23,21 @@ type CopyRightHandler struct {
 // @Success      200  {oboject}  responses.SuccessResponse
 // @Failure      400  {object}  responses.ErrorResponse
 // @Router       /desplay-copyright [post]
-func (h *CopyRightHandler) PostDesplayCopyRight(c *gin.Context) {
-	var desp requests.DesplayCopyrightRequest
-	if err := c.ShouldBindJSON(&desp); err != nil {
+func (h *CopyRightHandler) PostDisplayCopyRight(c *gin.Context) {
+	var disp requests.DisplayCopyrightRequest
+	if err := c.ShouldBindJSON(&disp); err != nil {
 		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 			Kind: entities.InvalidFormat})
 		c.JSON(status, errRes)
 		return
 	}
 
-	despEntity := desp.ToDomainCopyright()
-
-	resp, err := websocket.TypedWebSocketResponse[websocket.DesplayCopyrightData]{
-		Type: websocket.TypeConversionStart,
-		Data: websocket.ToDataDesplayCopyright(despEntity),
+	dispEntity := disp.ToDomainCopyright()
+	// log the desplay request for debugging
+	fmt.Printf("%+v\n", disp)
+	resp, err := websocket.TypedWebSocketResponse[websocket.DisplayCopyrightData]{
+		Type: websocket.TypeDisplayCopyright,
+		Data: websocket.ToDataDisplayCopyright(dispEntity),
 	}.Encode()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

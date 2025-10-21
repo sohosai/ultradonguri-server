@@ -70,7 +70,7 @@ func (h *Handler) Handle(r *gin.Engine) {
 		conversionRoutes.POST("/cm-mode", conversionHandlers.PostConversionCMMode)
 	}
 
-	r.POST("/deslpay-copyright", copyrightHandler.PostDesplayCopyRight)
+	r.POST("/display-copyright", copyrightHandler.PostDisplayCopyRight)
 
 	r.GET("/ws", websocketHandlers.GetWebsocketConnection)
 }

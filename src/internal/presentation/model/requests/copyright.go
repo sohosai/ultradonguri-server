@@ -2,12 +2,12 @@ package requests
 
 import "github.com/sohosai/ultradonguri-server/internal/domain/entities"
 
-type DesplayCopyrightRequest struct {
-	IsDesplay bool `json:"is_desplayed_copyright"`
+type DisplayCopyrightRequest struct {
+	IsDisplay bool `json:"is_displayed_copyright"`
 }
 
-func (d DesplayCopyrightRequest) ToDomainCopyright() entities.DesplayCopyright {
-	return entities.DesplayCopyright{
-		IsDesplay: d.IsDesplay,
+func (d DisplayCopyrightRequest) ToDomainCopyright() entities.DisplayCopyright {
+	return entities.DisplayCopyright{
+		IsDisplay: d.IsDisplay,
 	}
 }
