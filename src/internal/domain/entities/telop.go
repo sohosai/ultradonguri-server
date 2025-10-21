@@ -13,3 +13,5 @@ type TelopMessage struct {
 	PerformanceData *PerformancePost
 	ConversionData  *ConversionPost
 }
+
+type EmptyTelop struct{}

@@ -8,15 +8,15 @@ import (
 )
 
 type Handler struct {
-	AudioService repositories.AudioService
-	TelopStore   repositories.TelopStore
+	SceneManager repositories.SceneManager
+	TelopManager repositories.TelopManager
 	wsService    *websocket.WebSocketHub
 }
 
-func NewHandler(audio repositories.AudioService, telop repositories.TelopStore, wsHub *websocket.WebSocketHub) *Handler {
+func NewHandler(scene repositories.SceneManager, telop repositories.TelopManager, wsHub *websocket.WebSocketHub) *Handler {
 	return &Handler{
-		AudioService: audio,
-		TelopStore:   telop,
+		SceneManager: scene,
+		TelopManager: telop,
 		wsService:    wsHub,
 	}
 }
@@ -26,26 +26,27 @@ func (h *Handler) Handle(r *gin.Engine) {
 	healthHandler := HealthHandler{}
 
 	muteHandler := MuteHandler{
-		AudioService: h.AudioService,
+		SceneManager: h.SceneManager,
+		TelopManager: h.TelopManager,
 	}
 
 	performancesHandler := PerformancesHandler{}
 
 	performanceHandler := PerformanceHandler{
-		AudioService: h.AudioService,
-		TelopStore:   h.TelopStore,
+		SceneManager: h.SceneManager,
+		TelopManager: h.TelopManager,
 		wsService:    h.wsService,
 	}
 
 	conversionHandlers := ConversionHandlers{
-		AudioService: h.AudioService,
-		TelopStore:   h.TelopStore,
+		SceneManager: h.SceneManager,
+		TelopManager: h.TelopManager,
 		wsService:    h.wsService,
 	}
 
 	websocketHandlers := WebsocketHandlers{
-		AudioService: h.AudioService,
-		TelopStore:   h.TelopStore,
+		SceneManager: h.SceneManager,
+		TelopManager: h.TelopManager,
 		wsService:    h.wsService,
 	}
 

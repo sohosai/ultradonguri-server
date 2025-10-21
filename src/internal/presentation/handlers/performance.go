@@ -13,8 +13,8 @@ import (
 )
 
 type PerformanceHandler struct {
-	AudioService repositories.AudioService
-	TelopStore   repositories.TelopStore
+	SceneManager repositories.SceneManager
+	TelopManager repositories.TelopManager
 	wsService    *websocket.WebSocketHub
 }
 
@@ -39,21 +39,29 @@ func (h *PerformanceHandler) PostPerformanceStart(c *gin.Context) {
 
 	perfEntity := perf.ToDomainPerformance()
 
-	h.TelopStore.SetPerformanceTelop(perfEntity)
-	telopMessage := h.TelopStore.GetCurrentTelopMessage()
-	if telopMessage.IsSome() {
-		resp, err := websocket.TypedWebSocketResponse[websocket.PerformanceStartData]{
-			Type: websocket.TypePerformanceStart,
-			Data: websocket.ToDataPerfStart(perfEntity), //ちゃんと、getの関数を書いて、telopClientから読むべきかも
-		}.Encode()
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		h.wsService.PushTelop(resp)
+	// Telopを設定する
+	h.TelopManager.SetPerformanceTelop(perfEntity)
+
+	// Viewerへ通知
+	resp, err := websocket.TypedWebSocketResponse[websocket.PerformanceStartData]{
+		Type: websocket.TypePerformanceStart,
+		Data: websocket.ToDataPerfStart(perfEntity),
+	}.Encode()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	h.wsService.PushTelop(resp)
+
+	// SceneをNormalに設定する
+	if err := h.SceneManager.SetNormalScene(); err != nil {
+		// エラーは仮
+		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+			Kind: entities.InvalidFormat})
+		c.JSON(status, errRes)
+		return
 	}
 
-	h.AudioService.SetIsConversion(false)
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 }
 
@@ -76,8 +84,11 @@ func (h *PerformanceHandler) PostPerformanceMusic(c *gin.Context) {
 
 	musicEntity := music.ToDomainMusicPost()
 
-	h.TelopStore.SetMusicTelop(musicEntity)
-	telopMessage := h.TelopStore.GetCurrentTelopMessage()
+	// Telopを設定する
+	h.TelopManager.SetMusicTelop(musicEntity)
+
+	// Viewerへの通知
+	telopMessage := h.TelopManager.GetCurrentTelopMessage()
 	if telopMessage.IsSome() {
 		resp, err := websocket.TypedWebSocketResponse[websocket.PerformanceMusicData]{
 			Type: websocket.TypePerformanceMusic,
@@ -90,22 +101,15 @@ func (h *PerformanceHandler) PostPerformanceMusic(c *gin.Context) {
 		h.wsService.PushTelop(resp)
 	}
 
-	//performance中しか/musicを呼べなくするなら、そのステートもいるかも
-	//一旦簡易的にこちらでもisConersionをfalseにしておく
-	h.AudioService.SetIsConversion(false)
-	err := h.AudioService.SetShouldBeMuted(musicEntity.ShouldBeMuted)
+	// should_be_muteに合わせてミュート切り替えをする
+	// force_muteで失敗したときなどはerrが帰ってくるがこれは正常。しかし、すべてのエラーを同じように扱ってしまっているので、現状以下の処理はこの関数の一番最後にないといけない
+	err := h.SceneManager.SetMute(musicEntity.ShouldBeMuted)
 	if err != nil {
 		//後でエラーを細かくする
 		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 			Kind: entities.InvalidFormat})
 		c.JSON(status, errRes)
 		return
-	}
-
-	if musicEntity.ShouldBeMuted {
-		h.AudioService.SetMute(true)
-	} else {
-		h.AudioService.SetMute(false)
 	}
 
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
