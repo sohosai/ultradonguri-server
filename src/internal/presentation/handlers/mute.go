@@ -12,7 +12,8 @@ import (
 )
 
 type MuteHandler struct {
-	AudioService repositories.AudioService
+	SceneManager repositories.SceneManager
+	TelopManager repositories.TelopManager
 }
 
 // PostForceMute godoc
@@ -36,12 +37,64 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 
 	newMuteState := muteReq.ToDomainMute() //domainの型に変換
 
-	if err := h.AudioService.SetForceMute(newMuteState.IsMuted); err != nil {
+	if newMuteState.IsMuted { // 強制ミュートをする場合
+		// forceMuteFlagを有効化する
+		h.SceneManager.SetForceMuteFlag(true)
+
+		// CM中の場合はMuteに切り替えない
+		isCm, err := h.SceneManager.IsCm()
+		if err != nil {
+			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+				Kind: entities.InvalidFormat})
+			c.JSON(status, errRes)
+		}
+		if isCm {
+			c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+			return
+		}
+
+		// SceneをMuteに切り替える
+		if err := h.SceneManager.SetMute(true); err != nil {
+			// エラーは仮
+			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+				Kind: entities.CannotForceMute})
+			c.JSON(status, errRes)
+			return
+		}
+
+		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+		return
+	}
+
+	// 強制ミュートを解除する場合
+
+	// forceMuteFlagを無効化する
+	h.SceneManager.SetForceMuteFlag(false)
+
+	isCm, err := h.SceneManager.IsCm()
+	if err != nil {
+		// エラーは仮
 		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 			Kind: entities.CannotForceMute})
 		c.JSON(status, errRes)
 		return
 	}
 
+	if (h.TelopManager.IsConversion() || !h.TelopManager.ShouldBeMuted()) && !isCm {
+		// 現在のTelopがConversion
+		// または
+		// 現在のTelopがPerformanceでMusicがshould_be_muted=falseの場合
+		// かつCMモードじゃない場合
+
+		// SceneをNormalへ移行する
+		h.SceneManager.SetNormalScene()
+
+		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+		return
+	}
+
+	// ミュート状態自体は継続する場合
+
+	// 結果をエラーにするのかどうかは後で決める
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 }

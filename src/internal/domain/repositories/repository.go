@@ -5,20 +5,20 @@ import (
 	"github.com/sohosai/ultradonguri-server/internal/utils"
 )
 
-type AudioService interface {
+type SceneManager interface {
 	SetMute(bool) error
-	SetForceMute(bool) error
-	SetShouldBeMuted(bool) error
-	SetIsConversion(bool) error
 	SetNormalScene() error
-	SetMutedScene() error
 	SetCMScene() error
 	GetCurrentScene() (string, error)
+	SetForceMuteFlag(bool)
+	IsCm() (bool, error)
 }
 
-type TelopStore interface {
+type TelopManager interface {
 	SetPerformanceTelop(entities.Performance)
 	SetMusicTelop(entities.Music)
 	SetConversionTelop(entities.ConversionPost)
 	GetCurrentTelopMessage() utils.Option[entities.TelopMessage]
+	IsConversion() bool
+	ShouldBeMuted() bool
 }

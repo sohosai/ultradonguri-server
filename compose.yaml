@@ -1,27 +1,19 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: dev.Dockerfile
-    volumes:
-      - ./src:/app/src:cached
-      - app-data:/app
-    ports: 
-      - 8080:8080
-    networks:
-      - app-network
-    env_file: .env
-    command: 
-      - /bin/sh
-      - -c
-      - |
-        cd ./src
-        go mod download
-        air -c .air.toml
+    app:
+        build:
+            context: .
+            dockerfile: dev.Dockerfile
+        volumes:
+            - ./src:/app/src
+        ports:
+            - 8080:8080
+        networks:
+            - app-network
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        env_file: .env
+        working_dir: /app/src
+        command: ["sh", "-c", "go mod download && air -d -c .air.toml"]
 
 networks:
-  app-network:
-
-volumes:
-  app-data:
-
+    app-network:
