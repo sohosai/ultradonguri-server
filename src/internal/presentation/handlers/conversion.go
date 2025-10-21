@@ -12,8 +12,8 @@ import (
 )
 
 type ConversionHandlers struct {
-	TelopStore   repositories.TelopStore
-	AudioService repositories.AudioService
+	TelopManager repositories.TelopManager
+	SceneManager repositories.SceneManager
 	wsService    *websocket.WebSocketHub
 }
 
@@ -38,21 +38,29 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 
 	convEntity := conv.ToDomainConversion()
 
-	h.TelopStore.SetConversionTelop(convEntity)
-	telopMessage := h.TelopStore.GetCurrentTelopMessage()
-	if telopMessage.IsSome() {
-		resp, err := websocket.TypedWebSocketResponse[websocket.ConversionStartData]{
-			Type: websocket.TypeConversionStart,
-			Data: websocket.ToDataConvStart(convEntity),
-		}.Encode()
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		h.wsService.PushTelop(resp)
+	// TelopをConversionへ切り替え
+	h.TelopManager.SetConversionTelop(convEntity)
+
+	// viewerへの通知
+	resp, err := websocket.TypedWebSocketResponse[websocket.ConversionStartData]{
+		Type: websocket.TypeConversionStart,
+		Data: websocket.ToDataConvStart(convEntity),
+	}.Encode()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	h.wsService.PushTelop(resp)
+
+	// Normalシーンへ切り替え
+	if err := h.SceneManager.SetNormalScene(); err != nil {
+		// エラーは仮
+		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+			Kind: entities.InvalidFormat})
+		c.JSON(status, errRes)
+		return
 	}
 
-	h.AudioService.SetIsConversion(true)
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 }
 
@@ -77,33 +85,50 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 
 	convEntity := conv.ToDomainCMState()
 
-	resp, err := websocket.TypedWebSocketResponse[websocket.ConversionCmModeData]{
-		Type: websocket.TypeConversionCmMode,
-		Data: websocket.ToDataConvCmMode(convEntity),
-	}.Encode()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if h.TelopManager.IsConversion() {
+		// 転換パートでのみViewerへの通知とシーンの切り替えを行う
+
+		// Viewerへの通知
+		resp, err := websocket.TypedWebSocketResponse[websocket.ConversionCmModeData]{
+			Type: websocket.TypeConversionCmMode,
+			Data: websocket.ToDataConvCmMode(convEntity),
+		}.Encode()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		h.wsService.PushTelop(resp)
+
+		// シーンの切り替え
+		if convEntity.IsCMMode { // CMシーンへの切り替えを指定された場合
+			// テロップは現在のものを維持する。すわなち変更しない。変更するとCMシーンから戻るときに戻り先のテロップがわからなくなる
+			// シーンをCMに切り替える
+			err := h.SceneManager.SetCMScene()
+			if err != nil {
+				// エラーは仮
+				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+					Kind: entities.InvalidFormat})
+				c.JSON(status, errRes)
+				return
+			}
+		} else { // CMシーンからNormalへ戻る場合
+			// CMシーンに切り替わるのはConversion中だけで、
+			// 切り替えの際にTelopの情報は消されずに維持されるのでシーンだけNormalに戻せば良い
+			if err := h.SceneManager.SetNormalScene(); err != nil {
+				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+					Kind: entities.InvalidFormat})
+				c.JSON(status, errRes)
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
 		return
 	}
-	h.wsService.PushTelop(resp)
 
-	if convEntity.IsCMMode {
-		err := h.AudioService.SetCMScene()
-		if err != nil {
-			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-				Kind: entities.InvalidFormat})
-			c.JSON(status, errRes)
-			return
-		}
-	} else {
-		err := h.AudioService.SetMute(false)
-		if err != nil {
-			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-				Kind: entities.InvalidFormat})
-			c.JSON(status, errRes)
-			return
-		}
-	}
-
-	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+	// 転換パートでない場合はエラー
+	// エラー処理は仮
+	errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: "転換パートじゃないですよ的なエラーを発生させたい",
+		Kind: entities.InvalidFormat})
+	c.JSON(status, errRes)
 }
