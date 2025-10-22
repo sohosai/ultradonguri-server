@@ -8,6 +8,7 @@ type NextPerformance struct {
 	Title       string
 	Performer   string
 	Description string
+	StartsAt    HM
 }
 
 type CMState struct {
