@@ -1,7 +1,6 @@
 package scene
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -41,7 +40,7 @@ const (
 	CM
 )
 
-type SavedInfo struct {
+type Backup struct {
 	SceneType        SceneType `json:"scene_type"`
 	IsForceMutedFlag bool      `json:"is_force_muted"`
 }
@@ -56,11 +55,8 @@ func RestoreSceneManager(obsClient *goobs.Client, sceneNames SceneNames, backupP
 		return nil, err
 	}
 
-	var savedInfo SavedInfo
-
-	decoder := json.NewDecoder(bytes.NewReader(backupRaw))
-	decoder.DisallowUnknownFields()
-	if err = decoder.Decode(&savedInfo); err != nil {
+	savedInfo, err := utils.JsonStrictUnmarshal[Backup](backupRaw)
+	if err != nil {
 		return nil, err
 	}
 
@@ -164,7 +160,7 @@ func (self *SceneManager) IsCm() (bool, error) {
 }
 
 func (self *SceneManager) saveToFile() error {
-	info := SavedInfo{
+	info := Backup{
 		SceneType:        self.sceneType,
 		IsForceMutedFlag: self.isForceMutedFlag,
 	}
