@@ -28,6 +28,7 @@ type MuteHandler struct {
 // @Router       /force_mute [post]
 func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 	var muteReq requests.MuteStateRequest //jsonを受け取るため
+	var results []responses.Result
 	if err := c.ShouldBindJSON(&muteReq); err != nil {
 		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 			Kind: entities.InvalidFormat})
@@ -58,15 +59,23 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 
 		// SceneをMuteに切り替える
 		h.SceneManager.SetForceMuteFlag(true)
+		results = append(results, responses.Result{
+			Operation: "force_mute",
+			Success:   true,
+		})
 		if err := h.SceneManager.SetMute(true); err != nil {
+			results = append(results, responses.Result{
+				Operation: "scene_change",
+				Success:   false,
+			})
 			// エラーは仮
-			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-				Kind: entities.CannotForceMute})
-			c.JSON(status, errRes)
-			return
+			// errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+			// 	Kind: entities.CannotForceMute})
+			// c.JSON(status, errRes)
+			// return
 		}
 
-		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
 		return
 	}
 
