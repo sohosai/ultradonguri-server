@@ -16,13 +16,13 @@ type CopyRightHandler struct {
 }
 
 // HealthCheck godoc
-// @Summary      desplay copyright
-// @Description  endpoint to desplay copyright
-// @Tags         desplay-copyright
+// @Summary      display copyright
+// @Description  endpoint to display copyright
+// @Tags         display-copyright
 // @Produce      json
 // @Success      200  {oboject}  responses.SuccessResponse
 // @Failure      400  {object}  responses.ErrorResponse
-// @Router       /desplay-copyright [post]
+// @Router       /display-copyright [post]
 func (h *CopyRightHandler) PostDisplayCopyRight(c *gin.Context) {
 	var disp requests.DisplayCopyrightRequest
 	if err := c.ShouldBindJSON(&disp); err != nil {
@@ -33,7 +33,7 @@ func (h *CopyRightHandler) PostDisplayCopyRight(c *gin.Context) {
 	}
 
 	dispEntity := disp.ToDomainCopyright()
-	// log the desplay request for debugging
+	// log the display request for debugging
 	fmt.Printf("%+v\n", disp)
 	resp, err := websocket.TypedWebSocketResponse[websocket.DisplayCopyrightData]{
 		Type: websocket.TypeDisplayCopyright,
