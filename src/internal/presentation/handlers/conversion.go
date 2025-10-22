@@ -60,7 +60,7 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 	// Normalシーンへ切り替え
 	err = h.SceneManager.SetNormalScene()
 	results = append(results, responses.Result{
-		Operation: "scene_change",
+		Operation: "CM_Scene_change",
 		Success:   err == nil,
 	})
 
@@ -104,7 +104,7 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 				return
 			} else {
 				results = append(results, responses.Result{
-					Operation: "scene_change",
+					Operation: "CM_Scene_change",
 					Success:   true,
 				})
 			}
@@ -118,7 +118,7 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 				return
 			} else {
 				results = append(results, responses.Result{
-					Operation: "scene_change",
+					Operation: "mute_change",
 					Success:   true,
 				})
 			}
