@@ -15,17 +15,14 @@ func (self *SceneManager) SetNormalScene() error {
 		return fmt.Errorf("Failed to switch scene to Normal: force_muted")
 	}
 
-	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
-		SceneUuid: &self.scenes.Normal,
-	})
+	err := self.setScene(Normal, self.scenes.Normal)
 
 	return err
 }
 
 func (self *SceneManager) SetMutedScene() error {
-	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
-		SceneUuid: &self.scenes.Muted,
-	})
+	err := self.setScene(Muted, self.scenes.Muted)
+
 	return err
 }
 
@@ -36,9 +33,19 @@ func (self *SceneManager) SetCMScene() error {
 		return fmt.Errorf("Failed to switch scene to CM: force_muted")
 	}
 
+	err := self.setScene(CM, self.scenes.CM)
+
+	return err
+}
+
+func (self *SceneManager) setScene(sceneType SceneType, sceneUuid string) error {
 	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
-		SceneUuid: &self.scenes.CM,
+		SceneUuid: &sceneUuid,
 	})
+
+	self.sceneType = sceneType
+	self.saveToFile()
+
 	return err
 }
 
