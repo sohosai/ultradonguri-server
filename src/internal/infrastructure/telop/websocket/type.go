@@ -27,9 +27,10 @@ type ConversionCmModeData struct {
 }
 
 type NextPerformanceData struct {
-	Title       string `json:"title"`
-	Performer   string `json:"performer"`
-	Description string `json:"description"`
+	Title       string      `json:"title"`
+	Performer   string      `json:"performer"`
+	Description string      `json:"description"`
+	StartsAt    entities.HM `json:"starts_at"`
 }
 
 type DisplayCopyrightData struct {
@@ -78,6 +79,7 @@ func ToDataConvStart(c entities.ConversionPost) ConversionStartData {
 			Title:       np.Title,
 			Performer:   np.Performer,
 			Description: np.Description,
+			StartsAt:    np.StartsAt,
 		}
 	}
 

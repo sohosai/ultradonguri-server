@@ -1,7 +1,10 @@
 package telop
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/samber/mo"
 	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
@@ -11,19 +14,114 @@ import (
 type Telop = mo.Either3[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop]
 
 type TelopManager struct {
-	telop Telop
+	telop      Telop
+	backupPath string
 }
 
-func NewTelopManager() *TelopManager {
+type Backup struct {
+	Type entities.TelopType `json:"type"`
+	Data json.RawMessage    `json:"data"`
+}
+
+func NewTelopManager(backupPath string) *TelopManager {
 	initialConversionTelop := entities.ConversionPost{}
 	telop := mo.NewEither3Arg2[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](initialConversionTelop)
 
 	return &TelopManager{
-		telop: telop,
+		telop:      telop,
+		backupPath: backupPath,
 	}
 }
 
+func RestoreTelopManager(backupPath string) (*TelopManager, error) {
+	backupRaw, err := os.ReadFile(backupPath)
+	if err != nil {
+		return nil, err
+	}
+
+	backup, err := utils.JsonStrictUnmarshal[Backup](backupRaw)
+	if err != nil {
+		return nil, err
+	}
+
+	var telop Telop
+
+	switch backup.Type {
+	case entities.TelopTypePerformance:
+		p, err := utils.JsonStrictUnmarshal[entities.PerformancePost](backup.Data)
+		if err != nil {
+			return nil, err
+		}
+		telop = mo.NewEither3Arg1[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](p)
+	case entities.TelopTypeConversion:
+		c, err := utils.JsonStrictUnmarshal[entities.ConversionPost](backup.Data)
+		if err != nil {
+			return nil, err
+		}
+		telop = mo.NewEither3Arg2[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](c)
+	case entities.TelopTypeEmpty:
+		e, err := utils.JsonStrictUnmarshal[entities.EmptyTelop](backup.Data)
+		if err != nil {
+			return nil, err
+		}
+		telop = mo.NewEither3Arg3[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](e)
+	default:
+		return nil, fmt.Errorf("Unknown telop type.")
+	}
+
+	telopManager := TelopManager{
+		telop:      telop,
+		backupPath: backupPath,
+	}
+
+	return &telopManager, nil
+}
+
+func (self *TelopManager) saveToFile() error {
+	save_backup := func(type_ entities.TelopType, data json.RawMessage) error {
+		backup := Backup{
+			Type: type_,
+			Data: data,
+		}
+
+		backup_json, err := json.Marshal(backup)
+		if err != nil {
+			return err
+		}
+
+		return os.WriteFile(self.backupPath, backup_json, 0666)
+	}
+
+	return match(self.telop,
+		func(p entities.PerformancePost) error {
+			data, err := json.Marshal(p)
+			if err != nil {
+				return err
+			}
+
+			return save_backup(entities.TelopTypePerformance, data)
+		},
+		func(c entities.ConversionPost) error {
+			data, err := json.Marshal(c)
+			if err != nil {
+				return err
+			}
+
+			return save_backup(entities.TelopTypeConversion, data)
+		},
+		func(e entities.EmptyTelop) error {
+			data, err := json.Marshal(e)
+			if err != nil {
+				return err
+			}
+
+			return save_backup(entities.TelopTypeEmpty, data)
+		})
+}
+
 func (self *TelopManager) SetPerformanceTelop(performance entities.Performance) {
+	defer self.saveToFile()
+
 	performancePost := entities.PerformancePost{Performance: performance}
 
 	self.telop = mo.NewEither3Arg1[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](performancePost)
@@ -32,6 +130,8 @@ func (self *TelopManager) SetPerformanceTelop(performance entities.Performance) 
 }
 
 func (self *TelopManager) SetMusicTelop(music entities.Music) {
+	defer self.saveToFile()
+
 	var performancePost entities.PerformancePost
 
 	self.telop = match(self.telop, func(prevPerformance entities.PerformancePost) Telop {
@@ -55,6 +155,8 @@ func (self *TelopManager) SetMusicTelop(music entities.Music) {
 }
 
 func (self *TelopManager) SetConversionTelop(conversion entities.ConversionPost) {
+	defer self.saveToFile()
+
 	self.telop = mo.NewEither3Arg2[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](conversion)
 
 	log.Printf("Telop changed: %v", conversion)

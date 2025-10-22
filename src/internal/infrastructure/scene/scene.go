@@ -15,24 +15,31 @@ func (self *SceneManager) SetNormalScene() error {
 		return err
 	}
 
-	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
-		SceneUuid: &self.scenes.Normal,
-	})
+	err := self.setScene(Normal, self.scenes.Normal)
 
 	return err
 }
 
 func (self *SceneManager) SetMutedScene() error {
-	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
-		SceneUuid: &self.scenes.Muted,
-	})
+	err := self.setScene(Muted, self.scenes.Muted)
+
 	return err
 }
 
 func (self *SceneManager) SetCMScene() error {
+	// isConversionの管理はSceneManagerの責任ではないので外から受け取る
+	err := self.setScene(CM, self.scenes.CM)
+	return err
+}
+
+func (self *SceneManager) setScene(sceneType SceneType, sceneUuid string) error {
 	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
-		SceneUuid: &self.scenes.CM,
+		SceneUuid: &sceneUuid,
 	})
+
+	self.sceneType = sceneType
+	self.saveToFile()
+
 	return err
 }
 
