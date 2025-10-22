@@ -173,3 +173,7 @@ func (self *SceneManager) saveToFile() error {
 
 	return os.WriteFile(self.backupPath, data, 0o600)
 }
+
+func (self *SceneManager) IsForceMutedFlag() bool {
+	return self.isForceMutedFlag
+}

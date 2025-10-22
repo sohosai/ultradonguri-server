@@ -1,6 +1,8 @@
 package scene
 
 import (
+	"fmt"
+
 	"github.com/andreykaipov/goobs/api/requests/scenes"
 )
 
@@ -10,9 +12,8 @@ func (self *SceneManager) SetNormalScene() error {
 
 	if self.isForceMutedFlag {
 		// force_mute中はNormalシーンに移行しない
-		err := self.SetMutedScene()
-		// return fmt.Errorf("Failed to switch scene to Normal: force_muted")
-		return err
+		return fmt.Errorf("Failed to switch scene to Normal: force_muted")
+
 	}
 
 	err := self.setScene(Normal, self.scenes.Normal)

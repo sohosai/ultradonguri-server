@@ -57,12 +57,21 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 		Success:   true,
 	})
 
-	// Normalシーンへ切り替え
-	err = h.SceneManager.SetNormalScene()
-	results = append(results, responses.Result{
-		Operation: "CM_Scene_change",
-		Success:   err == nil,
-	})
+	if !h.SceneManager.IsForceMutedFlag() {
+		// Normalシーンへ切り替え
+		err = h.SceneManager.SetNormalScene()
+		results = append(results, responses.Result{
+			Operation: "Normal_Scene_change",
+			Success:   err == nil,
+		})
+	} else {
+		// Mutedシーンへ切り替え
+		err = h.SceneManager.SetMutedScene()
+		results = append(results, responses.Result{
+			Operation: "Muted_Scene_change",
+			Success:   err == nil,
+		})
+	}
 
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
 }
