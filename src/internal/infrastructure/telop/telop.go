@@ -2,6 +2,7 @@ package telop
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 
@@ -30,6 +31,50 @@ func NewTelopManager(backupPath string) *TelopManager {
 		telop:      telop,
 		backupPath: backupPath,
 	}
+}
+
+func RestoreTelopManager(backupPath string) (*TelopManager, error) {
+	backupRaw, err := os.ReadFile(backupPath)
+	if err != nil {
+		return nil, err
+	}
+
+	backup, err := utils.JsonStrictUnmarshal[Backup](backupRaw)
+	if err != nil {
+		return nil, err
+	}
+
+	var telop Telop
+
+	switch backup.Type {
+	case entities.TelopTypePerformance:
+		p, err := utils.JsonStrictUnmarshal[entities.PerformancePost](backup.Data)
+		if err != nil {
+			return nil, err
+		}
+		telop = mo.NewEither3Arg1[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](p)
+	case entities.TelopTypeConversion:
+		c, err := utils.JsonStrictUnmarshal[entities.ConversionPost](backup.Data)
+		if err != nil {
+			return nil, err
+		}
+		telop = mo.NewEither3Arg2[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](c)
+	case entities.TelopTypeEmpty:
+		e, err := utils.JsonStrictUnmarshal[entities.EmptyTelop](backup.Data)
+		if err != nil {
+			return nil, err
+		}
+		telop = mo.NewEither3Arg3[entities.PerformancePost, entities.ConversionPost, entities.EmptyTelop](e)
+	default:
+		return nil, fmt.Errorf("Unknown telop type.")
+	}
+
+	telopManager := TelopManager{
+		telop:      telop,
+		backupPath: backupPath,
+	}
+
+	return &telopManager, nil
 }
 
 func (self *TelopManager) saveToFile() error {

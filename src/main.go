@@ -34,6 +34,7 @@ func main() {
 	CONTROLLER_ORIGINS := os.Getenv("CONTROLLER_ADDRESS")
 	allowOrigins := strings.Split(CONTROLLER_ORIGINS, ",")
 	SCENE_BACKUP_PATH := os.Getenv("SCENE_BACKUP_PATH")
+	TELOP_BACKUP_PATH := os.Getenv("TELOP_BACKUP_PATH")
 
 	obsClient, err := goobs.New(ADDR, goobs.WithPassword(PASS))
 	if err != nil {
@@ -53,10 +54,17 @@ func main() {
 		}
 	}
 
+	// telopManagerのバックアップからのrestoreを試す
+	telopManager, err := telop.RestoreTelopManager(TELOP_BACKUP_PATH)
+	if err != nil {
+		log.Printf("Failed to restore telop manager: %s", err.Error())
+
+		// 失敗した場合は新しく作成する
+		telopManager = telop.NewTelopManager(TELOP_BACKUP_PATH)
+	}
+
 	wsHub := websocket.NewWebSocketHub(5)
 	go wsHub.StartTelopWebsocketBroadcastWorker()
-
-	telopManager := telop.NewTelopManager()
 
 	h := handlers.NewHandler(sceneManager, telopManager, wsHub)
 
