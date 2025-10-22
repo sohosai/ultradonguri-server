@@ -15,12 +15,14 @@ type CopyRightHandler struct {
 	wsService *websocket.WebSocketHub
 }
 
-// HealthCheck godoc
+// PostDisplayCopyRight godoc
 // @Summary      display copyright
 // @Description  endpoint to display copyright
 // @Tags         display-copyright
+// @Accept       json
 // @Produce      json
-// @Success      200  {oboject}  responses.SuccessResponse
+// @Param isDisplayedCopy-right body requests.DisplayCopyrightRequest true "post display-copyright"
+// @Success      200  {object}  responses.SuccessResponse
 // @Failure      400  {object}  responses.ErrorResponse
 // @Router       /display-copyright [post]
 func (h *CopyRightHandler) PostDisplayCopyRight(c *gin.Context) {
