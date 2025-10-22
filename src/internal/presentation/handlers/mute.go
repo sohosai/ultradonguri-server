@@ -63,17 +63,11 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 			Operation: "force_mute",
 			Success:   true,
 		})
-		if err := h.SceneManager.SetMute(true); err != nil {
-			results = append(results, responses.Result{
-				Operation: "scene_change",
-				Success:   false,
-			})
-			// エラーは仮
-			// errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-			// 	Kind: entities.CannotForceMute})
-			// c.JSON(status, errRes)
-			// return
-		}
+		err = h.SceneManager.SetMute(true)
+		results = append(results, responses.Result{
+			Operation: "scene_change",
+			Success:   err == nil,
+		})
 
 		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
 		return
@@ -107,7 +101,7 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 		err := h.SceneManager.SetNormalScene()
 		results = append(results, responses.Result{
 			Operation: "scene_change",
-			Success:   err != nil,
+			Success:   err == nil,
 		})
 
 		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
