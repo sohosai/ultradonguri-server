@@ -76,7 +76,8 @@ func (self *SceneManager) SetMute(state bool) error {
 		// ミュートを解除する場合
 
 		if self.isForceMutedFlag {
-			return fmt.Errorf("cannot change mute state: force muted is active")
+			// return fmt.Errorf("cannot change mute state: force muted is active")
+			return nil
 		}
 
 		return self.SetNormalScene()

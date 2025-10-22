@@ -39,7 +39,7 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 
 	if newMuteState.IsMuted { // 強制ミュートをする場合
 		// forceMuteFlagを有効化する
-		h.SceneManager.SetForceMuteFlag(true)
+		// h.SceneManager.SetForceMuteFlag(true)
 
 		// CM中の場合はMuteに切り替えない
 		isCm, err := h.SceneManager.IsCm()
@@ -49,11 +49,15 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 			c.JSON(status, errRes)
 		}
 		if isCm {
-			c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+			// c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: "cannot force_mute when CM scene",
+				Kind: entities.CannotChangeState})
+			c.JSON(status, errRes)
 			return
 		}
 
 		// SceneをMuteに切り替える
+		h.SceneManager.SetForceMuteFlag(true)
 		if err := h.SceneManager.SetMute(true); err != nil {
 			// エラーは仮
 			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),

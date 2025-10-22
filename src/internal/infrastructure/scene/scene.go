@@ -1,8 +1,6 @@
 package scene
 
 import (
-	"fmt"
-
 	"github.com/andreykaipov/goobs/api/requests/scenes"
 )
 
@@ -12,7 +10,9 @@ func (self *SceneManager) SetNormalScene() error {
 
 	if self.isForceMutedFlag {
 		// force_mute中はNormalシーンに移行しない
-		return fmt.Errorf("Failed to switch scene to Normal: force_muted")
+		self.SetMutedScene()
+		// return fmt.Errorf("Failed to switch scene to Normal: force_muted")
+		return nil
 	}
 
 	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
@@ -31,10 +31,10 @@ func (self *SceneManager) SetMutedScene() error {
 
 func (self *SceneManager) SetCMScene() error {
 	// isConversionの管理はSceneManagerの責任ではないので外から受け取る
-	if self.isForceMutedFlag {
-		// force_mute中もCMシーンには移行しない
-		return fmt.Errorf("Failed to switch scene to CM: force_muted")
-	}
+	// if self.isForceMutedFlag {
+	// 	// force_mute中もCMシーンには移行しない
+	// 	return fmt.Errorf("Failed to switch scene to CM: force_muted")
+	// }
 
 	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
 		SceneUuid: &self.scenes.CM,
