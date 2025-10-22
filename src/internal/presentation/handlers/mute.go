@@ -60,7 +60,7 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 		// SceneをMuteに切り替える
 		h.SceneManager.SetForceMuteFlag(true)
 		results = append(results, responses.Result{
-			Operation: "force_mute",
+			Operation: "force_mute_change",
 			Success:   true,
 		})
 		err = h.SceneManager.SetMute(true)
@@ -87,7 +87,7 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 	// forceMuteFlagを無効化する
 	h.SceneManager.SetForceMuteFlag(false)
 	results = append(results, responses.Result{
-		Operation: "force_mute",
+		Operation: "force_mute_change",
 		Success:   true,
 	})
 
@@ -111,5 +111,5 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 	// ミュート状態自体は継続する場合
 
 	// 結果をエラーにするのかどうかは後で決める
-	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
 }
