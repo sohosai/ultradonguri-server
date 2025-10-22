@@ -3,27 +3,28 @@ package requests
 import "github.com/sohosai/ultradonguri-server/internal/domain/entities"
 
 type PerformancePostRequest struct {
-	Music       MusicRequest       `json:"music"`
-	Performance PerformanceRequest `json:"performance"`
+	Music       MusicRequest       `json:"music" binding:"required"`
+	Performance PerformanceRequest `json:"performance" binding:"required"`
 }
 
 type MusicPostRequest struct {
-	Music MusicRequest `json:"music"`
+	Music MusicRequest `json:"music" binding:"required"`
 }
 
 type OnlyPerformancePostRequest struct {
-	Performance PerformanceRequest `json:"performance"`
+	Performance PerformanceRequest `json:"performance" binding:"required"`
 }
 
 type MusicRequest struct {
-	Title         string `json:"title"`
-	Artist        string `json:"artist"`
-	ShouldBeMuted bool   `json:"should_be_muted"`
+	Title  string `json:"title" binding:"required"`
+	Artist string `json:"artist" binding:"required"`
+	// binding:"required"の影響でfalseを渡したときにエラーが出るので、bool型ではなくポインタを渡す
+	ShouldBeMuted *bool `json:"should_be_muted" binding:"required"`
 }
 
 type PerformanceRequest struct {
-	Title     string `json:"title"`
-	Performer string `json:"performer"`
+	Title     string `json:"title" binding:"required"`
+	Performer string `json:"performer" binding:"required"`
 }
 
 // func (m MusicPostRequest) ToDomainMusicPost() entities.MusicPost {
@@ -40,7 +41,7 @@ func (m MusicRequest) ToDomainMusicPost() entities.Music {
 	return entities.Music{
 		Title:         m.Title,
 		Artist:        m.Artist,
-		ShouldBeMuted: m.ShouldBeMuted,
+		ShouldBeMuted: *m.ShouldBeMuted,
 	}
 }
 
@@ -56,7 +57,7 @@ func (pp PerformancePostRequest) ToDomainPerformancePost() entities.PerformanceP
 		Music: entities.Music{
 			Title:         pp.Music.Title,
 			Artist:        pp.Music.Artist,
-			ShouldBeMuted: pp.Music.ShouldBeMuted,
+			ShouldBeMuted: *pp.Music.ShouldBeMuted,
 		},
 		Performance: entities.Performance{
 			Title:     pp.Performance.Title,

@@ -12,6 +12,13 @@ definitions:
           $ref: '#/definitions/requests.NextPerformanceRequest'
         type: array
     type: object
+  requests.DisplayCopyrightRequest:
+    properties:
+      is_displayed_copyright:
+        type: boolean
+    required:
+    - is_displayed_copyright
+    type: object
   requests.MusicRequest:
     properties:
       artist:
@@ -81,10 +88,21 @@ definitions:
       title:
         type: string
     type: object
+  responses.Result:
+    properties:
+      operation:
+        type: string
+      success:
+        type: boolean
+    type: object
   responses.SuccessResponse:
     properties:
       message:
         type: string
+      results:
+        items:
+          $ref: '#/definitions/responses.Result'
+        type: array
     type: object
 info:
   contact: {}
@@ -144,6 +162,32 @@ paths:
       summary: conversion start
       tags:
       - conversion
+  /display-copyright:
+    post:
+      consumes:
+      - application/json
+      description: endpoint to display copyright
+      parameters:
+      - description: post display-copyright
+        in: body
+        name: isDisplayedCopy-right
+        required: true
+        schema:
+          $ref: '#/definitions/requests.DisplayCopyrightRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: display copyright
+      tags:
+      - display-copyright
   /force_mute:
     post:
       consumes:
