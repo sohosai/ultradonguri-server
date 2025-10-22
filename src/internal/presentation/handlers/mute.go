@@ -81,9 +81,6 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 
 	// 強制ミュートを解除する場合
 
-	// forceMuteFlagを無効化する
-	h.SceneManager.SetForceMuteFlag(false)
-
 	isCm, err := h.SceneManager.IsCm()
 	if err != nil {
 		// エラーは仮
@@ -93,6 +90,13 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 		return
 	}
 
+	// forceMuteFlagを無効化する
+	h.SceneManager.SetForceMuteFlag(false)
+	results = append(results, responses.Result{
+		Operation: "force_mute",
+		Success:   true,
+	})
+
 	if (h.TelopManager.IsConversion() || !h.TelopManager.ShouldBeMuted()) && !isCm {
 		// 現在のTelopがConversion
 		// または
@@ -100,9 +104,13 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 		// かつCMモードじゃない場合
 
 		// SceneをNormalへ移行する
-		h.SceneManager.SetNormalScene()
+		err := h.SceneManager.SetNormalScene()
+		results = append(results, responses.Result{
+			Operation: "scene_change",
+			Success:   err != nil,
+		})
 
-		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
 		return
 	}
 
