@@ -44,6 +44,10 @@ func (h *Handler) Handle(r *gin.Engine) {
 		wsService:    h.wsService,
 	}
 
+	copyrightHandler := CopyRightHandler{
+		wsService: h.wsService,
+	}
+
 	websocketHandlers := WebsocketHandlers{
 		SceneManager: h.SceneManager,
 		TelopManager: h.TelopManager,
@@ -66,6 +70,8 @@ func (h *Handler) Handle(r *gin.Engine) {
 		conversionRoutes.POST("/start", conversionHandlers.PostConversionStart)
 		conversionRoutes.POST("/cm-mode", conversionHandlers.PostConversionCMMode)
 	}
+
+	r.POST("/display-copyright", copyrightHandler.PostDisplayCopyRight)
 
 	r.GET("/ws", websocketHandlers.GetWebsocketConnection)
 }

@@ -95,6 +95,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/display-copyright": {
+            "post": {
+                "description": "endpoint to display copyright",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "display-copyright"
+                ],
+                "summary": "display copyright",
+                "parameters": [
+                    {
+                        "description": "post display-copyright",
+                        "name": "isDisplayedCopy-right",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.DisplayCopyrightRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/force_mute": {
             "post": {
                 "description": "endpoint for force mute and prevent changes",
@@ -285,6 +325,17 @@ const docTemplate = `{
                 }
             }
         },
+        "requests.DisplayCopyrightRequest": {
+            "type": "object",
+            "required": [
+                "is_displayed_copyright"
+            ],
+            "properties": {
+                "is_displayed_copyright": {
+                    "type": "boolean"
+                }
+            }
+        },
         "requests.MusicRequest": {
             "type": "object",
             "properties": {
@@ -392,11 +443,28 @@ const docTemplate = `{
                 }
             }
         },
+        "responses.Result": {
+            "type": "object",
+            "properties": {
+                "operation": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
         "responses.SuccessResponse": {
             "type": "object",
             "properties": {
                 "message": {
                     "type": "string"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/responses.Result"
+                    }
                 }
             }
         }
