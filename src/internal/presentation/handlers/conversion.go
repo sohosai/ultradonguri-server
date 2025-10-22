@@ -29,6 +29,7 @@ type ConversionHandlers struct {
 // @Router       /conversion/start [post]
 func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 	var conv requests.ConversionRequest
+	results := []responses.Result{}
 	if err := c.ShouldBindJSON(&conv); err != nil {
 		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 			Kind: entities.InvalidFormat})
@@ -51,17 +52,28 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 		return
 	}
 	h.wsService.PushTelop(resp)
+	results = append(results, responses.Result{
+		Operation: "telop_change",
+		Success:   true,
+	})
 
-	// Normalシーンへ切り替え
-	if err := h.SceneManager.SetNormalScene(); err != nil {
-		// エラーは仮
-		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-			Kind: entities.InvalidFormat})
-		c.JSON(status, errRes)
-		return
+	if !h.SceneManager.IsForceMutedFlag() {
+		// Normalシーンへ切り替え
+		err = h.SceneManager.SetNormalScene()
+		results = append(results, responses.Result{
+			Operation: "Normal_Scene_change",
+			Success:   err == nil,
+		})
+	} else {
+		// Mutedシーンへ切り替え
+		err = h.SceneManager.SetMutedScene()
+		results = append(results, responses.Result{
+			Operation: "Muted_Scene_change",
+			Success:   err == nil,
+		})
 	}
 
-	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
 }
 
 // PostConversionCMMode godoc
@@ -76,6 +88,7 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 // @Router       /conversion/cm-mode [post]
 func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 	var conv requests.CMStateRequest
+	results := []responses.Result{}
 	if err := c.ShouldBindJSON(&conv); err != nil {
 		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 			Kind: entities.InvalidFormat})
@@ -88,6 +101,38 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 	if h.TelopManager.IsConversion() {
 		// 転換パートでのみViewerへの通知とシーンの切り替えを行う
 
+		// シーンの切り替え
+		if convEntity.IsCMMode { // CMシーンへの切り替えを指定された場合
+			// シーンをCMに切り替える
+			err := h.SceneManager.SetCMScene()
+			if err != nil {
+				// エラーは仮
+				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+					Kind: entities.InvalidFormat})
+				c.JSON(status, errRes)
+				return
+			} else {
+				results = append(results, responses.Result{
+					Operation: "CM_Scene_change",
+					Success:   true,
+				})
+			}
+		} else { // CMシーンからNormalへ戻る場合
+			// CMシーンに切り替わるのはConversion中だけで、
+			// 切り替えの際にTelopの情報は消されずに維持されるのでシーンだけNormalに戻せば良い
+			if err := h.SceneManager.SetNormalScene(); err != nil {
+				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+					Kind: entities.InvalidFormat})
+				c.JSON(status, errRes)
+				return
+			} else {
+				results = append(results, responses.Result{
+					Operation: "mute_change",
+					Success:   true,
+				})
+			}
+		}
+
 		// Viewerへの通知
 		resp, err := websocket.TypedWebSocketResponse[websocket.ConversionCmModeData]{
 			Type: websocket.TypeConversionCmMode,
@@ -98,31 +143,12 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 			return
 		}
 		h.wsService.PushTelop(resp)
+		results = append(results, responses.Result{
+			Operation: "telop_change",
+			Success:   true,
+		})
 
-		// シーンの切り替え
-		if convEntity.IsCMMode { // CMシーンへの切り替えを指定された場合
-			// テロップは現在のものを維持する。すわなち変更しない。変更するとCMシーンから戻るときに戻り先のテロップがわからなくなる
-			// シーンをCMに切り替える
-			err := h.SceneManager.SetCMScene()
-			if err != nil {
-				// エラーは仮
-				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-					Kind: entities.InvalidFormat})
-				c.JSON(status, errRes)
-				return
-			}
-		} else { // CMシーンからNormalへ戻る場合
-			// CMシーンに切り替わるのはConversion中だけで、
-			// 切り替えの際にTelopの情報は消されずに維持されるのでシーンだけNormalに戻せば良い
-			if err := h.SceneManager.SetNormalScene(); err != nil {
-				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-					Kind: entities.InvalidFormat})
-				c.JSON(status, errRes)
-				return
-			}
-		}
-
-		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
 		return
 	}
 

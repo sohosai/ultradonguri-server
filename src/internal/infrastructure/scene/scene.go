@@ -13,6 +13,7 @@ func (self *SceneManager) SetNormalScene() error {
 	if self.isForceMutedFlag {
 		// force_mute中はNormalシーンに移行しない
 		return fmt.Errorf("Failed to switch scene to Normal: force_muted")
+
 	}
 
 	err := self.setScene(Normal, self.scenes.Normal)
@@ -28,13 +29,7 @@ func (self *SceneManager) SetMutedScene() error {
 
 func (self *SceneManager) SetCMScene() error {
 	// isConversionの管理はSceneManagerの責任ではないので外から受け取る
-	if self.isForceMutedFlag {
-		// force_mute中もCMシーンには移行しない
-		return fmt.Errorf("Failed to switch scene to CM: force_muted")
-	}
-
 	err := self.setScene(CM, self.scenes.CM)
-
 	return err
 }
 

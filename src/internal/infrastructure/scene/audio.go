@@ -135,6 +135,7 @@ func (self *SceneManager) SetMute(state bool) error {
 
 		if self.isForceMutedFlag {
 			return fmt.Errorf("cannot change mute state: force muted is active")
+			// return nil
 		}
 
 		return self.SetNormalScene()
@@ -171,4 +172,8 @@ func (self *SceneManager) saveToFile() error {
 	}
 
 	return os.WriteFile(self.backupPath, data, 0o600)
+}
+
+func (self *SceneManager) IsForceMutedFlag() bool {
+	return self.isForceMutedFlag
 }

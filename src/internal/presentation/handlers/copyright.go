@@ -27,6 +27,7 @@ type CopyRightHandler struct {
 // @Router       /display-copyright [post]
 func (h *CopyRightHandler) PostDisplayCopyRight(c *gin.Context) {
 	var disp requests.DisplayCopyrightRequest
+	results := []responses.Result{}
 	if err := c.ShouldBindJSON(&disp); err != nil {
 		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 			Kind: entities.InvalidFormat})
@@ -46,6 +47,10 @@ func (h *CopyRightHandler) PostDisplayCopyRight(c *gin.Context) {
 		return
 	}
 	h.wsService.PushTelop(resp)
+	results = append(results, responses.Result{
+		Operation: "telop_change",
+		Success:   true,
+	})
 
-	c.IndentedJSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+	c.IndentedJSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
 }

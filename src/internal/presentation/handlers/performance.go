@@ -30,6 +30,7 @@ type PerformanceHandler struct {
 // @Router       /performance/start [post]
 func (h *PerformanceHandler) PostPerformanceStart(c *gin.Context) {
 	var perf requests.PerformanceRequest
+	results := []responses.Result{}
 	if err := c.ShouldBindJSON(&perf); err != nil {
 		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 			Kind: entities.InvalidFormat})
@@ -52,17 +53,19 @@ func (h *PerformanceHandler) PostPerformanceStart(c *gin.Context) {
 		return
 	}
 	h.wsService.PushTelop(resp)
+	results = append(results, responses.Result{
+		Operation: "telop_change",
+		Success:   true,
+	})
 
 	// SceneをNormalに設定する
-	if err := h.SceneManager.SetNormalScene(); err != nil {
-		// エラーは仮
-		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-			Kind: entities.InvalidFormat})
-		c.JSON(status, errRes)
-		return
-	}
+	err = h.SceneManager.SetNormalScene()
+	results = append(results, responses.Result{
+		Operation: "scene_change",
+		Success:   err == nil,
+	})
 
-	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
 }
 
 // PostPerformanceMusic godoc
@@ -77,6 +80,7 @@ func (h *PerformanceHandler) PostPerformanceStart(c *gin.Context) {
 // @Router       /performance/music [post]
 func (h *PerformanceHandler) PostPerformanceMusic(c *gin.Context) {
 	var music requests.MusicRequest
+	results := []responses.Result{}
 	if err := c.ShouldBindJSON(&music); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -99,18 +103,26 @@ func (h *PerformanceHandler) PostPerformanceMusic(c *gin.Context) {
 			return
 		}
 		h.wsService.PushTelop(resp)
+		results = append(results, responses.Result{
+			Operation: "telop_change",
+			Success:   true,
+		})
 	}
 
 	// should_be_muteに合わせてミュート切り替えをする
 	// force_muteで失敗したときなどはerrが帰ってくるがこれは正常。しかし、すべてのエラーを同じように扱ってしまっているので、現状以下の処理はこの関数の一番最後にないといけない
 	err := h.SceneManager.SetMute(musicEntity.ShouldBeMuted)
-	if err != nil {
-		//後でエラーを細かくする
-		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-			Kind: entities.InvalidFormat})
-		c.JSON(status, errRes)
-		return
-	}
+	results = append(results, responses.Result{
+		Operation: "mute_change",
+		Success:   err == nil,
+	})
+	// if err != nil {
+	// 	//後でエラーを細かくする
+	// 	errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+	// 		Kind: entities.InvalidFormat})
+	// 	c.JSON(status, errRes)
+	// 	return
+	// }
 
-	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK"})
+	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
 }
