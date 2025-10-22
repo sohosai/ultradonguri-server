@@ -1,7 +1,10 @@
 package scene
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/andreykaipov/goobs"
 	"github.com/sohosai/ultradonguri-server/internal/utils"
@@ -10,9 +13,11 @@ import (
 type SceneManager struct {
 	obsClient *goobs.Client
 	scenes    Scenes
+	sceneType SceneType // ファイルバックアップのために今設定されているSceneTypeを保存しておく。setSceneというメソッドだけが触る
 	// isForceMutedがtrueなときに必ずシーンがMutedになっているわけではなく、
 	// 単にSetMute実行時に内部で利用するためのフラグとして考えたほうが良い気がする
 	isForceMutedFlag bool
+	backupPath       string
 }
 
 // sceneのName or UUIDをまとめた型
@@ -28,7 +33,48 @@ type SceneNames struct {
 	CM     string
 }
 
-func NewSceneManager(obsClient *goobs.Client, sceneNames SceneNames) (*SceneManager, error) {
+type SceneType = int
+
+const (
+	Normal SceneType = iota
+	Muted
+	CM
+)
+
+type SavedInfo struct {
+	SceneType        SceneType `json:"scene_type"`
+	IsForceMutedFlag bool      `json:"is_force_muted"`
+}
+
+func NewSceneManager(obsClient *goobs.Client, sceneNames SceneNames, backupPath string) (*SceneManager, error) {
+	return newSceneManager(obsClient, sceneNames, backupPath, Normal)
+}
+
+func RestoreSceneManager(obsClient *goobs.Client, sceneNames SceneNames, backupPath string) (*SceneManager, error) {
+	backupRaw, err := os.ReadFile(backupPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var savedInfo SavedInfo
+
+	decoder := json.NewDecoder(bytes.NewReader(backupRaw))
+	decoder.DisallowUnknownFields()
+	if err = decoder.Decode(&savedInfo); err != nil {
+		return nil, err
+	}
+
+	sceneManager, err := newSceneManager(obsClient, sceneNames, backupPath, savedInfo.SceneType)
+	if err != nil {
+		return nil, err
+	}
+
+	sceneManager.isForceMutedFlag = savedInfo.IsForceMutedFlag
+
+	return sceneManager, err
+}
+
+func newSceneManager(obsClient *goobs.Client, sceneNames SceneNames, backupPath string, initialScene SceneType) (*SceneManager, error) {
 	// sceneNameからsceneUuidを取得する。取得できなければ、そのようなsceneNameのSceneが存在しないと判断してエラー
 	// sceneNameはobsから容易に変更可能なので安全性のためにUUIDを用いる
 	resolve := func(name string) (string, error) {
@@ -58,16 +104,32 @@ func NewSceneManager(obsClient *goobs.Client, sceneNames SceneNames) (*SceneMana
 		CM:     cmUUID,
 	}
 
-	audioClient := &SceneManager{
+	sceneManager := &SceneManager{
 		obsClient:        obsClient,
 		scenes:           sceneUUIDs,
 		isForceMutedFlag: false,
+		backupPath:       backupPath,
 	}
 
-	//初期シーンを設定する必要があるかどうかは後で考える
-	audioClient.SetNormalScene()
+	switch initialScene {
+	case Normal:
+		err = sceneManager.SetNormalScene()
+		sceneManager.sceneType = Normal
 
-	return audioClient, nil
+	case Muted:
+		err = sceneManager.SetMutedScene()
+		sceneManager.sceneType = Muted
+
+	case CM:
+		err = sceneManager.SetCMScene()
+		sceneManager.sceneType = CM
+
+	default:
+		err = sceneManager.SetNormalScene()
+		sceneManager.sceneType = Normal
+	}
+
+	return sceneManager, err
 }
 
 // force_mute時のmute切り替えもこのメソッドが行う。
@@ -88,6 +150,8 @@ func (self *SceneManager) SetMute(state bool) error {
 
 func (self *SceneManager) SetForceMuteFlag(state bool) {
 	self.isForceMutedFlag = state
+
+	self.saveToFile()
 }
 
 func (self *SceneManager) IsCm() (bool, error) {
@@ -97,4 +161,18 @@ func (self *SceneManager) IsCm() (bool, error) {
 	}
 
 	return currentScene == self.scenes.CM, nil
+}
+
+func (self *SceneManager) saveToFile() error {
+	info := SavedInfo{
+		SceneType:        self.sceneType,
+		IsForceMutedFlag: self.isForceMutedFlag,
+	}
+
+	data, err := json.MarshalIndent(info, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(self.backupPath, data, 0o600)
 }
