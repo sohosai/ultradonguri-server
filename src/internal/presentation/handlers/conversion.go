@@ -120,6 +120,23 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 		} else { // CMシーンからNormalへ戻る場合
 			// CMシーンに切り替わるのはConversion中だけで、
 			// 切り替えの際にTelopの情報は消されずに維持されるのでシーンだけNormalに戻せば良い
+
+			// force_mute中はmutedに移行する
+			if h.SceneManager.IsForceMutedFlag() {
+				if err := h.SceneManager.SetMutedScene(); err != nil {
+					errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+						Kind: entities.InvalidFormat})
+					c.JSON(status, errRes)
+					return
+				}
+
+				results = append(results, responses.Result{
+					Operation: "mute_change",
+					Success:   true,
+				})
+				return
+			}
+
 			if err := h.SceneManager.SetNormalScene(); err != nil {
 				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 					Kind: entities.InvalidFormat})
@@ -127,7 +144,7 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 				return
 			} else {
 				results = append(results, responses.Result{
-					Operation: "mute_change",
+					Operation: "Normal_Scene_change",
 					Success:   true,
 				})
 			}
