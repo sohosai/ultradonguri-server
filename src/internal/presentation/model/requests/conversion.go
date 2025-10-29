@@ -7,10 +7,10 @@ type ConversionRequest struct {
 }
 
 type NextPerformanceRequest struct {
-	Title       string      `json:"title" binding:"required"`
-	Performer   string      `json:"performer" binding:"required"`
-	Description string      `json:"description" binding:"required"`
-	StartsAt    entities.HM `json:"starts_at" binding:"required"`
+	Title       string           `json:"title" binding:"required"`
+	Performer   string           `json:"performer" binding:"required"`
+	Description string           `json:"description" binding:"required"`
+	StartsAt    entities.ISOTime `json:"starts_at" binding:"required"`
 }
 
 type CMStateRequest struct {

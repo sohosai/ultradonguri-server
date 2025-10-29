@@ -5,12 +5,12 @@ import "github.com/sohosai/ultradonguri-server/internal/domain/entities"
 type PerformancesRecords []PerformancesRecord
 
 type PerformancesRecord struct {
-	ID          string      `json:"id"`
-	Title       string      `json:"title"`
-	Performer   string      `json:"performer"`
-	Description string      `json:"description"`
-	StartsAt    entities.HM `json:"starts_at"`
-	EndsAt      entities.HM `json:"ends_at"`
+	ID          string           `json:"id"`
+	Title       string           `json:"title"`
+	Performer   string           `json:"performer"`
+	Description string           `json:"description"`
+	StartsAt    entities.ISOTime `json:"starts_at"`
+	EndsAt      entities.ISOTime `json:"ends_at"`
 	Musics      `json:"musics"`
 }
 
