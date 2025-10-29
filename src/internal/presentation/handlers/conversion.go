@@ -134,19 +134,18 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 					Operation: "mute_change",
 					Success:   true,
 				})
-				return
-			}
-
-			if err := h.SceneManager.SetNormalScene(); err != nil {
-				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-					Kind: entities.InvalidFormat})
-				c.JSON(status, errRes)
-				return
 			} else {
-				results = append(results, responses.Result{
-					Operation: "Normal_Scene_change",
-					Success:   true,
-				})
+				if err := h.SceneManager.SetNormalScene(); err != nil {
+					errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+						Kind: entities.InvalidFormat})
+					c.JSON(status, errRes)
+					return
+				} else {
+					results = append(results, responses.Result{
+						Operation: "Normal_Scene_change",
+						Success:   true,
+					})
+				}
 			}
 		}
 
