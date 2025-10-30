@@ -9,4 +9,4 @@ EXPOSE 8080
 COPY src /app/src
 RUN cd ./src && go mod download && go build -o ../server main.go
 
-CMD ./server
+CMD ["./server"]
