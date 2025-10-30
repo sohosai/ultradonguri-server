@@ -5,6 +5,7 @@ services:
             dockerfile: dev.Dockerfile
         volumes:
             - ./src:/app/src
+            - ./events.json:/app/src/events.json
         ports:
             - 8080:8080
         networks:
