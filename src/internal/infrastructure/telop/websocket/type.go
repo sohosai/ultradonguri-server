@@ -27,10 +27,10 @@ type ConversionCmModeData struct {
 }
 
 type NextPerformanceData struct {
-	Title       string      `json:"title"`
-	Performer   string      `json:"performer"`
-	Description string      `json:"description"`
-	StartsAt    entities.HM `json:"starts_at"`
+	Title       string           `json:"title"`
+	Performer   string           `json:"performer"`
+	Description string           `json:"description"`
+	StartsAt    entities.ISOTime `json:"starts_at"`
 }
 
 type DisplayCopyrightData struct {

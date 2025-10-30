@@ -13,7 +13,7 @@ type PerformanceForPerformances struct {
 	Title       string
 	Performer   string
 	Description string
-	StartsAt    HM
-	EndsAt      HM
+	StartsAt    ISOTime
+	EndsAt      ISOTime
 	Musics      []MusicForPerformances
 }
