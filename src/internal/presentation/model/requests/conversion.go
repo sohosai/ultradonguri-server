@@ -9,7 +9,7 @@ type ConversionRequest struct {
 type NextPerformanceRequest struct {
 	Title       string           `json:"title" binding:"required"`
 	Performer   string           `json:"performer" binding:"required"`
-	Description string           `json:"description" binding:"required"`
+	Description *string          `json:"description" binding:"required"`
 	StartsAt    entities.ISOTime `json:"starts_at" binding:"required"`
 }
 
@@ -24,7 +24,7 @@ func (conv ConversionRequest) ToDomainConversion() entities.ConversionPost {
 		nextPerformances = append(nextPerformances, entities.NextPerformance{
 			Title:       e.Title,
 			Performer:   e.Performer,
-			Description: e.Description,
+			Description: *e.Description,
 			StartsAt:    e.StartsAt,
 		})
 	}
