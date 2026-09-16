@@ -17,65 +17,6 @@ type ConversionHandlers struct {
 	wsService    *websocket.WebSocketHub
 }
 
-// PostConversionStart godoc
-// @Summary      conversion start
-// @Description  endpoint for start conversion
-// @Tags         conversion
-// @Accept       json
-// @Produce      json
-// @Param conversionStart body requests.ConversionRequest true "post conversion request"
-// @Success      200  {object}  responses.SuccessResponse
-// @Failure      400  {object}  responses.ErrorResponse
-// @Router       /conversion/start [post]
-func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
-	var conv requests.ConversionRequest
-	results := []responses.Result{}
-	if err := c.ShouldBindJSON(&conv); err != nil {
-		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-			Kind: entities.InvalidFormat})
-		c.JSON(status, errRes)
-		return
-	}
-
-	convEntity := conv.ToDomainConversion()
-
-	// TelopをConversionへ切り替え
-	h.TelopManager.SetConversionTelop(convEntity)
-
-	// viewerへの通知
-	resp, err := websocket.TypedWebSocketResponse[websocket.ConversionStartData]{
-		Type: websocket.TypeConversionStart,
-		Data: websocket.ToDataConvStart(convEntity),
-	}.Encode()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	h.wsService.PushTelop(resp)
-	results = append(results, responses.Result{
-		Operation: "telop_change",
-		Success:   true,
-	})
-
-	if !h.SceneManager.IsForceMutedFlag() {
-		// Normalシーンへ切り替え
-		err = h.SceneManager.SetNormalScene()
-		results = append(results, responses.Result{
-			Operation: "Normal_Scene_change",
-			Success:   err == nil,
-		})
-	} else {
-		// Mutedシーンへ切り替え
-		err = h.SceneManager.SetMutedScene()
-		results = append(results, responses.Result{
-			Operation: "Muted_Scene_change",
-			Success:   err == nil,
-		})
-	}
-
-	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
-}
-
 // PostConversionCMMode godoc
 // @Summary      conversion cm-mode
 // @Description  endpoint for conversion to cm-mode
