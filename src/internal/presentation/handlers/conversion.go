@@ -90,21 +90,6 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 			}
 		}
 
-		// Viewerへの通知
-		resp, err := websocket.TypedWebSocketResponse[websocket.ConversionCmModeData]{
-			Type: websocket.TypeConversionCmMode,
-			Data: websocket.ToDataConvCmMode(convEntity),
-		}.Encode()
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		h.wsService.PushTelop(resp)
-		results = append(results, responses.Result{
-			Operation: "telop_change",
-			Success:   true,
-		})
-
 		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
 		return
 	}
