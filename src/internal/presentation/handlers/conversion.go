@@ -37,7 +37,7 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 
 	convEntity := conv.ToDomainCMState()
 
-	if h.TelopManager.IsConversion() {
+	//if h.TelopManager.IsConversion() {
 		// 転換パートでのみViewerへの通知とシーンの切り替えを行う
 
 		// シーンの切り替え
