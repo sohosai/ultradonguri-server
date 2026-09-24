@@ -12,8 +12,6 @@ import (
 
 	_ "github.com/sohosai/ultradonguri-server/docs"
 	"github.com/sohosai/ultradonguri-server/internal/infrastructure/scene"
-	"github.com/sohosai/ultradonguri-server/internal/infrastructure/telop"
-	"github.com/sohosai/ultradonguri-server/internal/infrastructure/telop/websocket"
 	"github.com/sohosai/ultradonguri-server/internal/presentation/handlers"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -34,7 +32,6 @@ func main() {
 	CONTROLLER_ORIGINS := os.Getenv("CONTROLLER_ADDRESS")
 	allowOrigins := strings.Split(CONTROLLER_ORIGINS, ",")
 	SCENE_BACKUP_PATH := os.Getenv("SCENE_BACKUP_PATH")
-	TELOP_BACKUP_PATH := os.Getenv("TELOP_BACKUP_PATH")
 
 	obsClient, err := goobs.New(ADDR, goobs.WithPassword(PASS))
 	if err != nil {
@@ -54,19 +51,7 @@ func main() {
 		}
 	}
 
-	// telopManagerのバックアップからのrestoreを試す
-	telopManager, err := telop.RestoreTelopManager(TELOP_BACKUP_PATH)
-	if err != nil {
-		log.Printf("Failed to restore telop manager: %s", err.Error())
-
-		// 失敗した場合は新しく作成する
-		telopManager = telop.NewTelopManager(TELOP_BACKUP_PATH)
-	}
-
-	wsHub := websocket.NewWebSocketHub(5)
-	go wsHub.StartTelopWebsocketBroadcastWorker()
-
-	h := handlers.NewHandler(sceneManager, telopManager, wsHub)
+	h := handlers.NewHandler(sceneManager)
 
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{

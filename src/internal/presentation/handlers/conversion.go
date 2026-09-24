@@ -6,13 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
 	"github.com/sohosai/ultradonguri-server/internal/domain/repositories"
-	"github.com/sohosai/ultradonguri-server/internal/infrastructure/telop/websocket"
 	"github.com/sohosai/ultradonguri-server/internal/presentation/model/requests"
 	"github.com/sohosai/ultradonguri-server/internal/presentation/model/responses"
 )
 
 type ConversionHandlers struct {
-	TelopManager repositories.TelopManager
 	SceneManager repositories.SceneManager
 	wsService    *websocket.WebSocketHub
 }

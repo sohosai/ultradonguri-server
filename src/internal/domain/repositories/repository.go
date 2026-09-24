@@ -16,11 +16,3 @@ type SceneManager interface {
 	IsForceMutedFlag() bool
 }
 
-type TelopManager interface {
-	SetPerformanceTelop(entities.Performance)
-	SetMusicTelop(entities.Music)
-	SetConversionTelop(entities.ConversionPost)
-	GetCurrentTelopMessage() utils.Option[entities.TelopMessage]
-	IsConversion() bool
-	ShouldBeMuted() bool
-}

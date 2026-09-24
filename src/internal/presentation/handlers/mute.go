@@ -13,7 +13,6 @@ import (
 
 type MuteHandler struct {
 	SceneManager repositories.SceneManager
-	TelopManager repositories.TelopManager
 }
 
 // PostForceMute godoc
@@ -87,23 +86,8 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 		Operation: "force_mute_off",
 		Success:   true,
 	})
-
-	if (h.TelopManager.IsConversion() || !h.TelopManager.ShouldBeMuted()) && !isCm {
-		// 現在のTelopがConversion
-		// または
-		// 現在のTelopがPerformanceでMusicがshould_be_muted=falseの場合
-		// かつCMモードじゃない場合
-
-		// SceneをNormalへ移行する
-		err := h.SceneManager.SetNormalScene()
-		results = append(results, responses.Result{
-			Operation: "mute_change",
-			Success:   err == nil,
-		})
-
-		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
-		return
-	}
+	
+	// Mute切り替えにおいてserverを経由しないため削除
 
 	// ミュート状態自体は継続する場合
 
