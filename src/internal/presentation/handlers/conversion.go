@@ -90,7 +90,7 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 
 		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
 		return
-	}
+	//}
 
 	// 転換パートでない場合はエラー
 	// エラー処理は仮
