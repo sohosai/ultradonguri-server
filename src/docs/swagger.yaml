@@ -106,7 +106,6 @@ definitions:
     type: object
 info:
   contact: {}
-  description: Sohosai 2025 project telop sending API
   title: Ultradonguri API
   version: "0.1"
 paths:

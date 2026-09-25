@@ -19,7 +19,6 @@ import (
 
 // @title       Ultradonguri API
 // @version     0.1
-// @description Sohosai 2025 project telop sending API
 // @BasePath    /
 func main() {
 	ADDR := os.Getenv("ADDRESS")
