@@ -1,10 +1,5 @@
 package repositories
 
-import (
-	"github.com/sohosai/ultradonguri-server/internal/domain/entities"
-	"github.com/sohosai/ultradonguri-server/internal/utils"
-)
-
 type SceneManager interface {
 	SetMute(bool) error
 	SetNormalScene() error
@@ -15,4 +10,3 @@ type SceneManager interface {
 	IsCm() (bool, error)
 	IsForceMutedFlag() bool
 }
-
