@@ -13,7 +13,6 @@ import (
 
 type MuteHandler struct {
 	SceneManager repositories.SceneManager
-	TelopManager repositories.TelopManager
 }
 
 // PostForceMute godoc
@@ -70,17 +69,6 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 		return
 	}
 
-	// 強制ミュートを解除する場合
-
-	isCm, err := h.SceneManager.IsCm()
-	if err != nil {
-		// エラーは仮
-		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-			Kind: entities.CannotForceMute})
-		c.JSON(status, errRes)
-		return
-	}
-
 	// forceMuteFlagを無効化する
 	h.SceneManager.SetForceMuteFlag(false)
 	results = append(results, responses.Result{
@@ -88,22 +76,7 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 		Success:   true,
 	})
 
-	if (h.TelopManager.IsConversion() || !h.TelopManager.ShouldBeMuted()) && !isCm {
-		// 現在のTelopがConversion
-		// または
-		// 現在のTelopがPerformanceでMusicがshould_be_muted=falseの場合
-		// かつCMモードじゃない場合
-
-		// SceneをNormalへ移行する
-		err := h.SceneManager.SetNormalScene()
-		results = append(results, responses.Result{
-			Operation: "mute_change",
-			Success:   err == nil,
-		})
-
-		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
-		return
-	}
+	// Mute切り替えにおいてserverを経由しないため削除
 
 	// ミュート状態自体は継続する場合
 
