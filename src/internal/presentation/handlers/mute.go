@@ -69,24 +69,13 @@ func (h *MuteHandler) PostForceMuted(c *gin.Context) {
 		return
 	}
 
-	// 強制ミュートを解除する場合
-
-	isCm, err := h.SceneManager.IsCm()
-	if err != nil {
-		// エラーは仮
-		errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-			Kind: entities.CannotForceMute})
-		c.JSON(status, errRes)
-		return
-	}
-
 	// forceMuteFlagを無効化する
 	h.SceneManager.SetForceMuteFlag(false)
 	results = append(results, responses.Result{
 		Operation: "force_mute_off",
 		Success:   true,
 	})
-	
+
 	// Mute切り替えにおいてserverを経由しないため削除
 
 	// ミュート状態自体は継続する場合
