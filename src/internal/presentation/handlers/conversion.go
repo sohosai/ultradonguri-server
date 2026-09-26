@@ -12,7 +12,6 @@ import (
 
 type ConversionHandlers struct {
 	SceneManager repositories.SceneManager
-	wsService    *websocket.WebSocketHub
 }
 
 // PostConversionCMMode godoc
@@ -38,58 +37,58 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 	convEntity := conv.ToDomainCMState()
 
 	//if h.TelopManager.IsConversion() {
-		// 転換パートでのみViewerへの通知とシーンの切り替えを行う
+	// 転換パートでのみViewerへの通知とシーンの切り替えを行う
 
-		// シーンの切り替え
-		if convEntity.IsCMMode { // CMシーンへの切り替えを指定された場合
-			// シーンをCMに切り替える
-			err := h.SceneManager.SetCMScene()
-			if err != nil {
-				// エラーは仮
+	// シーンの切り替え
+	if convEntity.IsCMMode { // CMシーンへの切り替えを指定された場合
+		// シーンをCMに切り替える
+		err := h.SceneManager.SetCMScene()
+		if err != nil {
+			// エラーは仮
+			errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+				Kind: entities.InvalidFormat})
+			c.JSON(status, errRes)
+			return
+		} else {
+			results = append(results, responses.Result{
+				Operation: "CM_Scene_change",
+				Success:   true,
+			})
+		}
+	} else { // CMシーンからNormalへ戻る場合
+		// CMシーンに切り替わるのはConversion中だけで、
+		// 切り替えの際にTelopの情報は消されずに維持されるのでシーンだけNormalに戻せば良い
+
+		// force_mute中はmutedに移行する
+		if h.SceneManager.IsForceMutedFlag() {
+			if err := h.SceneManager.SetMutedScene(); err != nil {
+				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+					Kind: entities.InvalidFormat})
+				c.JSON(status, errRes)
+				return
+			}
+
+			results = append(results, responses.Result{
+				Operation: "mute_change",
+				Success:   true,
+			})
+		} else {
+			if err := h.SceneManager.SetNormalScene(); err != nil {
 				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
 					Kind: entities.InvalidFormat})
 				c.JSON(status, errRes)
 				return
 			} else {
 				results = append(results, responses.Result{
-					Operation: "CM_Scene_change",
+					Operation: "Normal_Scene_change",
 					Success:   true,
 				})
-			}
-		} else { // CMシーンからNormalへ戻る場合
-			// CMシーンに切り替わるのはConversion中だけで、
-			// 切り替えの際にTelopの情報は消されずに維持されるのでシーンだけNormalに戻せば良い
-
-			// force_mute中はmutedに移行する
-			if h.SceneManager.IsForceMutedFlag() {
-				if err := h.SceneManager.SetMutedScene(); err != nil {
-					errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-						Kind: entities.InvalidFormat})
-					c.JSON(status, errRes)
-					return
-				}
-
-				results = append(results, responses.Result{
-					Operation: "mute_change",
-					Success:   true,
-				})
-			} else {
-				if err := h.SceneManager.SetNormalScene(); err != nil {
-					errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-						Kind: entities.InvalidFormat})
-					c.JSON(status, errRes)
-					return
-				} else {
-					results = append(results, responses.Result{
-						Operation: "Normal_Scene_change",
-						Success:   true,
-					})
-				}
 			}
 		}
+	}
 
-		c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
-		return
+	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
+	return
 	//}
 
 	// 転換パートでない場合はエラー
