@@ -24,12 +24,14 @@ type Scenes struct {
 	Normal string
 	Muted  string
 	CM     string
+	Burari string
 }
 
 type SceneNames struct {
 	Normal string
 	Muted  string
 	CM     string
+	Burari string
 }
 
 type SceneType = int
@@ -38,6 +40,7 @@ const (
 	Normal SceneType = iota
 	Muted
 	CM
+	Burari
 )
 
 type Backup struct {
@@ -93,11 +96,16 @@ func newSceneManager(obsClient *goobs.Client, sceneNames SceneNames, backupPath 
 	if err != nil {
 		return nil, err
 	}
+	burariUUID, err := resolve(sceneNames.Burari)
+	if err != nil {
+		return nil, err
+	}
 
 	sceneUUIDs := Scenes{
 		Normal: normalUUID,
 		Muted:  mutedUUID,
 		CM:     cmUUID,
+		Burari: burariUUID,
 	}
 
 	sceneManager := &SceneManager{
@@ -119,6 +127,10 @@ func newSceneManager(obsClient *goobs.Client, sceneNames SceneNames, backupPath 
 	case CM:
 		err = sceneManager.SetCMScene()
 		sceneManager.sceneType = CM
+
+	case Burari:
+		err = sceneManager.SetBurariScene()
+		sceneManager.sceneType = Burari
 
 	default:
 		err = sceneManager.SetNormalScene()

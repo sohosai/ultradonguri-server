@@ -10,6 +10,7 @@ type SceneManager interface {
 	SetNormalScene() error
 	SetMutedScene() error
 	SetCMScene() error
+	SetBurariScene() error
 	GetCurrentScene() (string, error)
 	SetForceMuteFlag(bool)
 	IsCm() (bool, error)

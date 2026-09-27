@@ -73,5 +73,13 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 	r.POST("/display-copyright", copyrightHandler.PostDisplayCopyRight)
 
+	sceneHandlers := SceneHandlers{
+		SceneManager: h.SceneManager,
+	}
+
+	r.POST("/burari-scene", sceneHandlers.PostBurariScene)
+	r.POST("/cm-scene", sceneHandlers.PostCmScene)
+	r.POST("/normal-scene", sceneHandlers.PostNormalScene)
+
 	r.GET("/ws", websocketHandlers.GetWebsocketConnection)
 }
