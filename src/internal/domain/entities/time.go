@@ -7,7 +7,7 @@ import (
 )
 
 type ISOTime struct {
-	time.Time
+	time.Time `swaggertype:"string" format:"date-time" example:"2026-09-28T12:00:00Z"`
 }
 
 func (t *ISOTime) UnmarshalJSON(b []byte) error {

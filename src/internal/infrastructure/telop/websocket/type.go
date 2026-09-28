@@ -30,7 +30,7 @@ type NextPerformanceData struct {
 	Title       string           `json:"title"`
 	Performer   string           `json:"performer"`
 	Description string           `json:"description"`
-	StartsAt    entities.ISOTime `json:"starts_at"`
+	StartsAt    entities.ISOTime `json:"starts_at" swaggertype:"string" format:"date-time"`
 }
 
 type DisplayCopyrightData struct {

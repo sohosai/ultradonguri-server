@@ -10,7 +10,7 @@ type NextPerformanceRequest struct {
 	Title       string           `json:"title" binding:"required"`
 	Performer   string           `json:"performer" binding:"required"`
 	Description *string          `json:"description" binding:"required"`
-	StartsAt    entities.ISOTime `json:"starts_at" binding:"required"`
+	StartsAt    entities.ISOTime `json:"starts_at" binding:"required" swaggertype:"string" format:"date-time"`
 }
 
 type CMStateRequest struct {

@@ -393,14 +393,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "entities.ISOTime": {
-            "type": "object",
-            "properties": {
-                "time.Time": {
-                    "type": "string"
-                }
-            }
-        },
         "requests.CMStateRequest": {
             "type": "object",
             "required": [
@@ -486,7 +478,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "starts_at": {
-                    "$ref": "#/definitions/entities.ISOTime"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "title": {
                     "type": "string"
@@ -546,7 +539,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ends_at": {
-                    "$ref": "#/definitions/entities.ISOTime"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "id": {
                     "type": "string"
@@ -561,7 +555,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "starts_at": {
-                    "$ref": "#/definitions/entities.ISOTime"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "title": {
                     "type": "string"

@@ -1,10 +1,5 @@
 basePath: /
 definitions:
-  entities.ISOTime:
-    properties:
-      time.Time:
-        type: string
-    type: object
   requests.CMStateRequest:
     properties:
       is_cm_mode:
@@ -58,7 +53,8 @@ definitions:
       performer:
         type: string
       starts_at:
-        $ref: '#/definitions/entities.ISOTime'
+        format: date-time
+        type: string
       title:
         type: string
     required:
@@ -102,7 +98,8 @@ definitions:
       description:
         type: string
       ends_at:
-        $ref: '#/definitions/entities.ISOTime'
+        format: date-time
+        type: string
       id:
         type: string
       musics:
@@ -112,7 +109,8 @@ definitions:
       performer:
         type: string
       starts_at:
-        $ref: '#/definitions/entities.ISOTime'
+        format: date-time
+        type: string
       title:
         type: string
     type: object
