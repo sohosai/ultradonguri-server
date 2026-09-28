@@ -42,11 +42,12 @@ func (self *SceneManager) setScene(sceneType SceneType, sceneUuid string) error 
 	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
 		SceneUuid: &sceneUuid,
 	})
+	if err != nil {
+		return err
+	}
 
 	self.sceneType = sceneType
-	self.saveToFile()
-
-	return err
+	return self.saveToFile()
 }
 
 func (self *SceneManager) GetCurrentScene() (sceneUUID string, err error) {
