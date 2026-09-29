@@ -1,7 +1,6 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Sohosai 2025 project telop sending API",
         "title": "Ultradonguri API",
         "contact": {},
         "version": "0.1"
