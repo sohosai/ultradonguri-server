@@ -10,9 +10,8 @@ type MusicPost struct {
 }
 
 type Music struct {
-	Title         string
-	Artist        string
-	ShouldBeMuted bool
+	Title  string
+	Artist string
 }
 
 type Performance struct {

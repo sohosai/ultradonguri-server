@@ -19,7 +19,6 @@ type MusicRequest struct {
 	Title  *string `json:"title" binding:"required"`
 	Artist *string `json:"artist" binding:"required"`
 	// binding:"required"の影響でfalseを渡したときにエラーが出るので、bool型ではなくポインタを渡す
-	ShouldBeMuted *bool `json:"should_be_muted" binding:"required"`
 }
 
 type PerformanceRequest struct {
@@ -32,16 +31,14 @@ type PerformanceRequest struct {
 // 		Music: entities.Music{
 // 			Title:         m.Music.Title,
 // 			Artist:        m.Music.Artist,
-// 			ShouldBeMuted: m.Music.ShouldBeMuted,
 // 		},
 // 	}
 // }
 
 func (m MusicRequest) ToDomainMusicPost() entities.Music {
 	return entities.Music{
-		Title:         *m.Title,
-		Artist:        *m.Artist,
-		ShouldBeMuted: *m.ShouldBeMuted,
+		Title:  *m.Title,
+		Artist: *m.Artist,
 	}
 }
 
@@ -55,9 +52,8 @@ func (p PerformanceRequest) ToDomainPerformance() entities.Performance {
 func (pp PerformancePostRequest) ToDomainPerformancePost() entities.PerformancePost {
 	return entities.PerformancePost{
 		Music: entities.Music{
-			Title:         *pp.Music.Title,
-			Artist:        *pp.Music.Artist,
-			ShouldBeMuted: *pp.Music.ShouldBeMuted,
+			Title:  *pp.Music.Title,
+			Artist: *pp.Music.Artist,
 		},
 		Performance: entities.Performance{
 			Title:     pp.Performance.Title,
