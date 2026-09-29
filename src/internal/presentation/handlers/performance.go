@@ -111,11 +111,11 @@ func (h *PerformanceHandler) PostPerformanceMusic(c *gin.Context) {
 
 	// should_be_muteに合わせてミュート切り替えをする
 	// force_muteで失敗したときなどはerrが帰ってくるがこれは正常。しかし、すべてのエラーを同じように扱ってしまっているので、現状以下の処理はこの関数の一番最後にないといけない
-	err := h.SceneManager.SetMute(musicEntity.ShouldBeMuted)
-	results = append(results, responses.Result{
-		Operation: "mute_change",
-		Success:   err == nil,
-	})
+	// err := h.SceneManager.SetMute(musicEntity.ShouldBeMuted)
+	// results = append(results, responses.Result{
+	// 	Operation: "mute_change",
+	// 	Success:   err == nil,
+	// })
 	// if err != nil {
 	// 	//後でエラーを細かくする
 	// 	errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),

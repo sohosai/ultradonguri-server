@@ -25,11 +25,6 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 	healthHandler := HealthHandler{}
 
-	muteHandler := MuteHandler{
-		SceneManager: h.SceneManager,
-		TelopManager: h.TelopManager,
-	}
-
 	performancesHandler := PerformancesHandler{}
 
 	performanceHandler := PerformanceHandler{
@@ -56,7 +51,6 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 	r.GET("/health", healthHandler.GetHealth)
 
-	r.POST("/force_mute", muteHandler.PostForceMuted)
 	r.GET("/performances", performancesHandler.GetPerformances)
 
 	performanceRoutes := r.Group("/performance")

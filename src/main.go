@@ -28,7 +28,6 @@ func main() {
 	PASS := os.Getenv("PASSWORD")
 	scenes := scene.SceneNames{
 		Normal: os.Getenv("NORMAL_SCENE_NAME"),
-		Muted:  os.Getenv("MUTED_SCENE_NAME"),
 		CM:     os.Getenv("CM_SCENE_NAME"),
 	}
 	CONTROLLER_ORIGINS := os.Getenv("CONTROLLER_ADDRESS")

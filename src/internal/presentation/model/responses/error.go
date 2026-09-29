@@ -27,8 +27,6 @@ func NewErrorResponseAndHTTPStatus(err entities.AppError) (*ErrorResponse, int) 
 		status = http.StatusBadRequest
 	case entities.CannotConversion:
 		status = http.StatusBadRequest
-	case entities.CannotForceMute:
-		status = http.StatusBadRequest
 	case entities.CannotChangeState:
 		status = http.StatusInternalServerError
 	}

@@ -57,22 +57,6 @@ func (h *ConversionHandlers) PostConversionStart(c *gin.Context) {
 		Success:   true,
 	})
 
-	if !h.SceneManager.IsForceMutedFlag() {
-		// Normalシーンへ切り替え
-		err = h.SceneManager.SetNormalScene()
-		results = append(results, responses.Result{
-			Operation: "Normal_Scene_change",
-			Success:   err == nil,
-		})
-	} else {
-		// Mutedシーンへ切り替え
-		err = h.SceneManager.SetMutedScene()
-		results = append(results, responses.Result{
-			Operation: "Muted_Scene_change",
-			Success:   err == nil,
-		})
-	}
-
 	c.JSON(http.StatusOK, responses.SuccessResponse{Message: "OK", Results: results})
 }
 
@@ -120,32 +104,17 @@ func (h *ConversionHandlers) PostConversionCMMode(c *gin.Context) {
 		} else { // CMシーンからNormalへ戻る場合
 			// CMシーンに切り替わるのはConversion中だけで、
 			// 切り替えの際にTelopの情報は消されずに維持されるのでシーンだけNormalに戻せば良い
-
-			// force_mute中はmutedに移行する
-			if h.SceneManager.IsForceMutedFlag() {
-				if err := h.SceneManager.SetMutedScene(); err != nil {
-					errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-						Kind: entities.InvalidFormat})
-					c.JSON(status, errRes)
-					return
-				}
-
+			
+			if err := h.SceneManager.SetNormalScene(); err != nil {
+				errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
+					Kind: entities.InvalidFormat})
+				c.JSON(status, errRes)
+				return
+			} else {
 				results = append(results, responses.Result{
-					Operation: "mute_change",
+					Operation: "Normal_Scene_change",
 					Success:   true,
 				})
-			} else {
-				if err := h.SceneManager.SetNormalScene(); err != nil {
-					errRes, status := responses.NewErrorResponseAndHTTPStatus(entities.AppError{Message: err.Error(),
-						Kind: entities.InvalidFormat})
-					c.JSON(status, errRes)
-					return
-				} else {
-					results = append(results, responses.Result{
-						Operation: "Normal_Scene_change",
-						Success:   true,
-					})
-				}
 			}
 		}
 
