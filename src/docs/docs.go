@@ -15,6 +15,64 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/burari-scene": {
+            "post": {
+                "description": "endpoint for change OBS scene to burari-travel",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "scene"
+                ],
+                "summary": "change to burari scene",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/cm-scene": {
+            "post": {
+                "description": "endpoint for change OBS scene to cm",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "scene"
+                ],
+                "summary": "change to cm scene",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/conversion/cm-mode": {
             "post": {
                 "description": "endpoint for conversion to cm-mode",
@@ -155,6 +213,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/normal-scene": {
+            "post": {
+                "description": "endpoint for change OBS scene to normal",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "scene"
+                ],
+                "summary": "change to normal scene",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responses.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/performance/music": {
             "post": {
                 "description": "endpoint for start performance music",
@@ -268,14 +355,21 @@ const docTemplate = `{
     "definitions": {
         "requests.CMStateRequest": {
             "type": "object",
+            "required": [
+                "is_cm_mode"
+            ],
             "properties": {
                 "is_cm_mode": {
+                    "description": "binding:\"required\"の影響でfalseを渡したときにエラーが出るので、bool型ではなくポインタを渡す",
                     "type": "boolean"
                 }
             }
         },
         "requests.ConversionRequest": {
             "type": "object",
+            "required": [
+                "next_performances"
+            ],
             "properties": {
                 "next_performances": {
                     "type": "array",
@@ -298,11 +392,17 @@ const docTemplate = `{
         },
         "requests.MusicRequest": {
             "type": "object",
+            "required": [
+                "artist",
+                "should_be_muted",
+                "title"
+            ],
             "properties": {
                 "artist": {
                     "type": "string"
                 },
                 "should_be_muted": {
+                    "description": "binding:\"required\"の影響でfalseを渡したときにエラーが出るので、bool型ではなくポインタを渡す",
                     "type": "boolean"
                 },
                 "title": {
@@ -312,20 +412,34 @@ const docTemplate = `{
         },
         "requests.MuteStateRequest": {
             "type": "object",
+            "required": [
+                "is_muted"
+            ],
             "properties": {
                 "is_muted": {
+                    "description": "binding:\"required\"の影響でfalseを渡したときにエラーが出るので、bool型ではなくポインタを渡す",
                     "type": "boolean"
                 }
             }
         },
         "requests.NextPerformanceRequest": {
             "type": "object",
+            "required": [
+                "description",
+                "performer",
+                "starts_at",
+                "title"
+            ],
             "properties": {
                 "description": {
                     "type": "string"
                 },
                 "performer": {
                     "type": "string"
+                },
+                "starts_at": {
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "title": {
                     "type": "string"
@@ -334,6 +448,10 @@ const docTemplate = `{
         },
         "requests.PerformanceRequest": {
             "type": "object",
+            "required": [
+                "performer",
+                "title"
+            ],
             "properties": {
                 "performer": {
                     "type": "string"
@@ -381,7 +499,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ends_at": {
-                    "type": "integer"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "id": {
                     "type": "string"
@@ -396,7 +515,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "starts_at": {
-                    "type": "integer"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "title": {
                     "type": "string"

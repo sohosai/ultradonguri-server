@@ -19,14 +19,21 @@ func (self *SceneManager) SetCMScene() error {
 	return err
 }
 
+func (self *SceneManager) SetBurariScene() error {
+	err := self.setScene(Burari, self.scenes.Burari)
+	return err
+}
+
 func (self *SceneManager) setScene(sceneType SceneType, sceneUuid string) error {
 	_, err := self.obsClient.Scenes.SetCurrentProgramScene(&scenes.SetCurrentProgramSceneParams{
 		SceneUuid: &sceneUuid,
 	})
+	if err != nil {
+		return err
+	}
 
 	self.sceneType = sceneType
-
-	return err
+	return self.saveToFile()
 }
 
 func (self *SceneManager) GetCurrentScene() (sceneUUID string, err error) {

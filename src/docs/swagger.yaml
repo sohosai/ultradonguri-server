@@ -3,7 +3,10 @@ definitions:
   requests.CMStateRequest:
     properties:
       is_cm_mode:
+        description: binding:"required"の影響でfalseを渡したときにエラーが出るので、bool型ではなくポインタを渡す
         type: boolean
+    required:
+    - is_cm_mode
     type: object
   requests.ConversionRequest:
     properties:
@@ -11,6 +14,8 @@ definitions:
         items:
           $ref: '#/definitions/requests.NextPerformanceRequest'
         type: array
+    required:
+    - next_performances
     type: object
   requests.DisplayCopyrightRequest:
     properties:
@@ -24,14 +29,22 @@ definitions:
       artist:
         type: string
       should_be_muted:
+        description: binding:"required"の影響でfalseを渡したときにエラーが出るので、bool型ではなくポインタを渡す
         type: boolean
       title:
         type: string
+    required:
+    - artist
+    - should_be_muted
+    - title
     type: object
   requests.MuteStateRequest:
     properties:
       is_muted:
+        description: binding:"required"の影響でfalseを渡したときにエラーが出るので、bool型ではなくポインタを渡す
         type: boolean
+    required:
+    - is_muted
     type: object
   requests.NextPerformanceRequest:
     properties:
@@ -39,8 +52,16 @@ definitions:
         type: string
       performer:
         type: string
+      starts_at:
+        format: date-time
+        type: string
       title:
         type: string
+    required:
+    - description
+    - performer
+    - starts_at
+    - title
     type: object
   requests.PerformanceRequest:
     properties:
@@ -48,6 +69,9 @@ definitions:
         type: string
       title:
         type: string
+    required:
+    - performer
+    - title
     type: object
   responses.ErrorResponse:
     properties:
@@ -74,7 +98,8 @@ definitions:
       description:
         type: string
       ends_at:
-        type: integer
+        format: date-time
+        type: string
       id:
         type: string
       musics:
@@ -84,7 +109,8 @@ definitions:
       performer:
         type: string
       starts_at:
-        type: integer
+        format: date-time
+        type: string
       title:
         type: string
     type: object
@@ -109,6 +135,44 @@ info:
   title: Ultradonguri API
   version: "0.1"
 paths:
+  /burari-scene:
+    post:
+      consumes:
+      - application/json
+      description: endpoint for change OBS scene to burari-travel
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: change to burari scene
+      tags:
+      - scene
+  /cm-scene:
+    post:
+      consumes:
+      - application/json
+      description: endpoint for change OBS scene to cm
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: change to cm scene
+      tags:
+      - scene
   /conversion/cm-mode:
     post:
       consumes:
@@ -200,6 +264,25 @@ paths:
       summary: health check
       tags:
       - health
+  /normal-scene:
+    post:
+      consumes:
+      - application/json
+      description: endpoint for change OBS scene to normal
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responses.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responses.ErrorResponse'
+      summary: change to normal scene
+      tags:
+      - scene
   /performance/music:
     post:
       consumes:

@@ -35,4 +35,11 @@ func (h *Handler) Handle(r *gin.Engine) {
 		conversionRoutes.POST("/cm-mode", conversionHandlers.PostConversionCMMode)
 	}
 
+	sceneHandlers := SceneHandlers{
+		SceneManager: h.SceneManager,
+	}
+
+	r.POST("/burari-scene", sceneHandlers.PostBurariScene)
+	r.POST("/cm-scene", sceneHandlers.PostCmScene)
+	r.POST("/normal-scene", sceneHandlers.PostNormalScene)
 }

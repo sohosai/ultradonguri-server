@@ -1,6 +1,7 @@
 package scene
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -19,11 +20,13 @@ type SceneManager struct {
 type Scenes struct {
 	Normal string
 	CM     string
+	Burari string
 }
 
 type SceneNames struct {
 	Normal string
 	CM     string
+	Burari string
 }
 
 type SceneType = int
@@ -31,6 +34,7 @@ type SceneType = int
 const (
 	Normal SceneType = iota
 	CM
+	Burari
 )
 
 type Backup struct {
@@ -79,10 +83,15 @@ func newSceneManager(obsClient *goobs.Client, sceneNames SceneNames, backupPath 
 	if err != nil {
 		return nil, err
 	}
+	burariUUID, err := resolve(sceneNames.Burari)
+	if err != nil {
+		return nil, err
+	}
 
 	sceneUUIDs := Scenes{
 		Normal: normalUUID,
 		CM:     cmUUID,
+		Burari: burariUUID,
 	}
 
 	sceneManager := &SceneManager{
@@ -100,6 +109,10 @@ func newSceneManager(obsClient *goobs.Client, sceneNames SceneNames, backupPath 
 		err = sceneManager.SetCMScene()
 		sceneManager.sceneType = CM
 
+	case Burari:
+		err = sceneManager.SetBurariScene()
+		sceneManager.sceneType = Burari
+
 	default:
 		err = sceneManager.SetNormalScene()
 		sceneManager.sceneType = Normal
@@ -115,4 +128,17 @@ func (self *SceneManager) IsCm() (bool, error) {
 	}
 
 	return currentScene == self.scenes.CM, nil
+}
+
+func (self *SceneManager) saveToFile() error {
+	info := Backup{
+		SceneType: self.sceneType,
+	}
+
+	data, err := json.MarshalIndent(info, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(self.backupPath, data, 0o600)
 }

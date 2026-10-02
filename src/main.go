@@ -26,6 +26,7 @@ func main() {
 	scenes := scene.SceneNames{
 		Normal: os.Getenv("NORMAL_SCENE_NAME"),
 		CM:     os.Getenv("CM_SCENE_NAME"),
+		Burari: os.Getenv("BURARI_SCENE_NAME"),
 	}
 	CONTROLLER_ORIGINS := os.Getenv("CONTROLLER_ADDRESS")
 	allowOrigins := strings.Split(CONTROLLER_ORIGINS, ",")

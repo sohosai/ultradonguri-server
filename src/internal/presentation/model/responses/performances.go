@@ -7,8 +7,8 @@ type PerformancesResponse struct {
 	Title       string           `json:"title"`
 	Performer   string           `json:"performer"`
 	Description string           `json:"description"`
-	StartsAt    entities.ISOTime `json:"starts_at"`
-	EndsAt      entities.ISOTime `json:"ends_at"`
+	StartsAt    entities.ISOTime `json:"starts_at" swaggertype:"string" format:"date-time"`
+	EndsAt      entities.ISOTime `json:"ends_at" swaggertype:"string" format:"date-time"`
 	Musics      `json:"musics"`
 }
 
