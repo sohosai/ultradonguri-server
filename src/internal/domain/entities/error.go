@@ -11,6 +11,5 @@ const (
 	InvalidPerformancesJson
 	InvalidFormat
 	CannotConversion
-	CannotForceMute
 	CannotChangeState
 )

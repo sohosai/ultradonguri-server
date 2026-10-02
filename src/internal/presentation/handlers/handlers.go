@@ -20,10 +20,6 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 	healthHandler := HealthHandler{}
 
-	muteHandler := MuteHandler{
-		SceneManager: h.SceneManager,
-	}
-
 	performancesHandler := PerformancesHandler{}
 
 	conversionHandlers := ConversionHandlers{
@@ -32,7 +28,6 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 	r.GET("/health", healthHandler.GetHealth)
 
-	r.POST("/force_mute", muteHandler.PostForceMuted)
 	r.GET("/performances", performancesHandler.GetPerformances)
 
 	conversionRoutes := r.Group("/conversion")

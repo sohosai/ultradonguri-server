@@ -1,11 +1,10 @@
 package entities
 
 type MusicForPerformances struct {
-	ID            string
-	Title         string
-	Artist        string
-	ShouldBeMuted bool
-	Intro         string
+	ID     string
+	Title  string
+	Artist string
+	Intro  string
 }
 
 type PerformanceForPerformances struct {
