@@ -1,6 +1,7 @@
 package scene
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -127,4 +128,17 @@ func (self *SceneManager) IsCm() (bool, error) {
 	}
 
 	return currentScene == self.scenes.CM, nil
+}
+
+func (self *SceneManager) saveToFile() error {
+	info := Backup{
+		SceneType: self.sceneType,
+	}
+
+	data, err := json.MarshalIndent(info, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(self.backupPath, data, 0o600)
 }
