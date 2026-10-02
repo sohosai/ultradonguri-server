@@ -15,11 +15,10 @@ type PerformancesResponse struct {
 type Musics []MusicResponse
 
 type MusicResponse struct {
-	ID            string `json:"id"`
-	Title         string `json:"title"`
-	Artist        string `json:"artist"`
-	ShouldBeMuted bool   `json:"should_be_muted"`
-	Intro         string `json:"intro"`
+	ID     string `json:"id"`
+	Title  string `json:"title"`
+	Artist string `json:"artist"`
+	Intro  string `json:"intro"`
 }
 
 func NewPerformancesResponse(p []entities.PerformanceForPerformances) []PerformancesResponse {
@@ -42,11 +41,10 @@ func NewMusicsResponse(musics []entities.MusicForPerformances) Musics {
 	res := make(Musics, len(musics))
 	for i, m := range musics {
 		res[i] = MusicResponse{
-			ID:            m.ID,
-			Title:         m.Title,
-			Artist:        m.Artist,
-			ShouldBeMuted: m.ShouldBeMuted,
-			Intro:         m.Intro,
+			ID:     m.ID,
+			Title:  m.Title,
+			Artist: m.Artist,
+			Intro:  m.Intro,
 		}
 	}
 	return res

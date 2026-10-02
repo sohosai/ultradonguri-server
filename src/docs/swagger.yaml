@@ -132,7 +132,6 @@ definitions:
     type: object
 info:
   contact: {}
-  description: Sohosai 2025 project telop sending API
   title: Ultradonguri API
   version: "0.1"
 paths:
@@ -252,32 +251,6 @@ paths:
       summary: display copyright
       tags:
       - display-copyright
-  /force_mute:
-    post:
-      consumes:
-      - application/json
-      description: endpoint for force mute and prevent changes
-      parameters:
-      - description: select mute state
-        in: body
-        name: isMuted
-        required: true
-        schema:
-          $ref: '#/definitions/requests.MuteStateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/responses.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/responses.ErrorResponse'
-      summary: force mute
-      tags:
-      - force_mute
   /health:
     get:
       description: endpoint for health check

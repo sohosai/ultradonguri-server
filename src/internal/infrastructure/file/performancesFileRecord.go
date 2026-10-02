@@ -17,11 +17,10 @@ type PerformancesRecord struct {
 type Musics []MusicRecord
 
 type MusicRecord struct {
-	ID            string `json:"id"`
-	Title         string `json:"title"`
-	Artist        string `json:"artist"`
-	ShouldBeMuted bool   `json:"should_be_muted"`
-	Intro         string `json:"intro"`
+	ID     string `json:"id"`
+	Title  string `json:"title"`
+	Artist string `json:"artist"`
+	Intro  string `json:"intro"`
 }
 
 func (perf PerformancesRecords) ToDomainPerformanceForPerformances() []entities.PerformanceForPerformances {
@@ -44,11 +43,10 @@ func (m Musics) ToDomainMusicsForPerformances() []entities.MusicForPerformances 
 	res := make([]entities.MusicForPerformances, len(m))
 	for i, music := range m {
 		res[i] = entities.MusicForPerformances{
-			ID:            music.ID,
-			Title:         music.Title,
-			Artist:        music.Artist,
-			ShouldBeMuted: music.ShouldBeMuted,
-			Intro:         music.Intro,
+			ID:     music.ID,
+			Title:  music.Title,
+			Artist: music.Artist,
+			Intro:  music.Intro,
 		}
 	}
 	return res

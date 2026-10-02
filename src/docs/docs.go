@@ -193,46 +193,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/force_mute": {
-            "post": {
-                "description": "endpoint for force mute and prevent changes",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "force_mute"
-                ],
-                "summary": "force mute",
-                "parameters": [
-                    {
-                        "description": "select mute state",
-                        "name": "isMuted",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.MuteStateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/health": {
             "get": {
                 "description": "endpoint for health check",
@@ -598,7 +558,6 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Ultradonguri API",
-	Description:      "Sohosai 2025 project telop sending API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

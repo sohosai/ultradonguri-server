@@ -1,7 +1,6 @@
 package scene
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -10,26 +9,21 @@ import (
 )
 
 type SceneManager struct {
-	obsClient *goobs.Client
-	scenes    Scenes
-	sceneType SceneType // ファイルバックアップのために今設定されているSceneTypeを保存しておく。setSceneというメソッドだけが触る
-	// isForceMutedがtrueなときに必ずシーンがMutedになっているわけではなく、
-	// 単にSetMute実行時に内部で利用するためのフラグとして考えたほうが良い気がする
-	isForceMutedFlag bool
-	backupPath       string
+	obsClient  *goobs.Client
+	scenes     Scenes
+	sceneType  SceneType // ファイルバックアップのために今設定されているSceneTypeを保存しておく。setSceneというメソッドだけが触る
+	backupPath string
 }
 
 // sceneのName or UUIDをまとめた型
 type Scenes struct {
 	Normal string
-	Muted  string
 	CM     string
 	Burari string
 }
 
 type SceneNames struct {
 	Normal string
-	Muted  string
 	CM     string
 	Burari string
 }
@@ -38,14 +32,12 @@ type SceneType = int
 
 const (
 	Normal SceneType = iota
-	Muted
 	CM
 	Burari
 )
 
 type Backup struct {
-	SceneType        SceneType `json:"scene_type"`
-	IsForceMutedFlag bool      `json:"is_force_muted"`
+	SceneType SceneType `json:"scene_type"`
 }
 
 func NewSceneManager(obsClient *goobs.Client, sceneNames SceneNames, backupPath string) (*SceneManager, error) {
@@ -68,8 +60,6 @@ func RestoreSceneManager(obsClient *goobs.Client, sceneNames SceneNames, backupP
 		return nil, err
 	}
 
-	sceneManager.isForceMutedFlag = savedInfo.IsForceMutedFlag
-
 	return sceneManager, err
 }
 
@@ -88,10 +78,6 @@ func newSceneManager(obsClient *goobs.Client, sceneNames SceneNames, backupPath 
 	if err != nil {
 		return nil, err
 	}
-	mutedUUID, err := resolve(sceneNames.Muted)
-	if err != nil {
-		return nil, err
-	}
 	cmUUID, err := resolve(sceneNames.CM)
 	if err != nil {
 		return nil, err
@@ -103,26 +89,20 @@ func newSceneManager(obsClient *goobs.Client, sceneNames SceneNames, backupPath 
 
 	sceneUUIDs := Scenes{
 		Normal: normalUUID,
-		Muted:  mutedUUID,
 		CM:     cmUUID,
 		Burari: burariUUID,
 	}
 
 	sceneManager := &SceneManager{
-		obsClient:        obsClient,
-		scenes:           sceneUUIDs,
-		isForceMutedFlag: false,
-		backupPath:       backupPath,
+		obsClient:  obsClient,
+		scenes:     sceneUUIDs,
+		backupPath: backupPath,
 	}
 
 	switch initialScene {
 	case Normal:
 		err = sceneManager.SetNormalScene()
 		sceneManager.sceneType = Normal
-
-	case Muted:
-		err = sceneManager.SetMutedScene()
-		sceneManager.sceneType = Muted
 
 	case CM:
 		err = sceneManager.SetCMScene()
@@ -140,29 +120,6 @@ func newSceneManager(obsClient *goobs.Client, sceneNames SceneNames, backupPath 
 	return sceneManager, err
 }
 
-// force_mute時のmute切り替えもこのメソッドが行う。
-func (self *SceneManager) SetMute(state bool) error {
-	if !state {
-		// ミュートを解除する場合
-
-		if self.isForceMutedFlag {
-			return fmt.Errorf("cannot change mute state: force muted is active")
-			// return nil
-		}
-
-		return self.SetNormalScene()
-	}
-
-	// ミュートする場合
-	return self.SetMutedScene()
-}
-
-func (self *SceneManager) SetForceMuteFlag(state bool) {
-	self.isForceMutedFlag = state
-
-	self.saveToFile()
-}
-
 func (self *SceneManager) IsCm() (bool, error) {
 	currentScene, err := self.GetCurrentScene()
 	if err != nil {
@@ -170,22 +127,4 @@ func (self *SceneManager) IsCm() (bool, error) {
 	}
 
 	return currentScene == self.scenes.CM, nil
-}
-
-func (self *SceneManager) saveToFile() error {
-	info := Backup{
-		SceneType:        self.sceneType,
-		IsForceMutedFlag: self.isForceMutedFlag,
-	}
-
-	data, err := json.MarshalIndent(info, "", "\t")
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(self.backupPath, data, 0o600)
-}
-
-func (self *SceneManager) IsForceMutedFlag() bool {
-	return self.isForceMutedFlag
 }

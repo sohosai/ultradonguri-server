@@ -1,7 +1,6 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Sohosai 2025 project telop sending API",
         "title": "Ultradonguri API",
         "contact": {},
         "version": "0.1"
@@ -167,46 +166,6 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/requests.DisplayCopyrightRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/responses.SuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/responses.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/force_mute": {
-            "post": {
-                "description": "endpoint for force mute and prevent changes",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "force_mute"
-                ],
-                "summary": "force mute",
-                "parameters": [
-                    {
-                        "description": "select mute state",
-                        "name": "isMuted",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/requests.MuteStateRequest"
                         }
                     }
                 ],
