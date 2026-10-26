@@ -20,15 +20,11 @@ func (h *Handler) Handle(r *gin.Engine) {
 
 	healthHandler := HealthHandler{}
 
-	performancesHandler := PerformancesHandler{}
-
 	conversionHandlers := ConversionHandlers{
 		SceneManager: h.SceneManager,
 	}
 
 	r.GET("/health", healthHandler.GetHealth)
-
-	r.GET("/performances", performancesHandler.GetPerformances)
 
 	conversionRoutes := r.Group("/conversion")
 	{
